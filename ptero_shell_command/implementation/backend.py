@@ -1,4 +1,7 @@
 from . import celery_tasks
+import logging
+
+LOG = logging.getLogger(__name__)
 
 
 class Backend(object):
@@ -18,6 +21,8 @@ class Backend(object):
             callbacks=None):
         task = self.shell_command.delay(command_line, environment=environment,
                 stdin=stdin, callbacks=callbacks)
+        LOG.debug("Task (%s) command_line: '%s'", task.id, command_line)
+        LOG.debug("Task (%s) stdin: '%s'", task.id, stdin)
 
         return task.id
 

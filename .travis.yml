@@ -3,7 +3,13 @@ python: "2.7"
 
 install: pip install tox
 
-before_script: sudo update-alternatives --install /bin/sh sh /bin/bash 100
+before_script:
+    - sudo update-alternatives --install /bin/sh sh /bin/bash 100
+    - git clone --depth 1 https://github.com/genome/ptero-common.git
+
+env:
+    global:
+        - PTERO_COMMON_HOME=./ptero-common
 
 script: tox
 
