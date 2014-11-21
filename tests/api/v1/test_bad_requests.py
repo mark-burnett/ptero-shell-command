@@ -55,3 +55,15 @@ class TestBadRequests(BaseAPITest):
     def test_extra_properties(self):
         self.valid_request_data['unknownExtraProperty'] = 'foo'
         self._expect_400(self.valid_request_data)
+
+    def test_environment_contains_strings_integer(self):
+        self.valid_request_data['environment'] = {
+            'foo': 7
+        }
+        self._expect_400(self.valid_request_data)
+
+    def test_environment_contains_strings_null(self):
+        self.valid_request_data['environment'] = {
+            'foo': None
+        }
+        self._expect_400(self.valid_request_data)
