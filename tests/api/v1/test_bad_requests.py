@@ -31,3 +31,15 @@ class TestBadRequests(BaseAPITest):
     def test_command_line_contains_non_strings(self):
         self.valid_request_data['commandLine'] = ['foo', 1, 'bar']
         self._expect_400(self.valid_request_data)
+
+    def test_user_non_string_integer(self):
+        self.valid_request_data['user'] = 100
+        self._expect_400(self.valid_request_data)
+
+    def test_user_non_string_null(self):
+        self.valid_request_data['user'] = None
+        self._expect_400(self.valid_request_data)
+
+    def test_user_too_short(self):
+        self.valid_request_data['user'] = ''
+        self._expect_400(self.valid_request_data)
