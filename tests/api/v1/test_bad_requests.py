@@ -51,3 +51,7 @@ class TestBadRequests(BaseAPITest):
     def test_working_directory_too_short(self):
         self.valid_request_data['working_directory'] = ''
         self._expect_400(self.valid_request_data)
+
+    def test_extra_properties(self):
+        self.valid_request_data['unknownExtraProperty'] = 'foo'
+        self._expect_400(self.valid_request_data)
