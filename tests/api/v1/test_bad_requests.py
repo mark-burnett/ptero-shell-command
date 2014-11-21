@@ -43,3 +43,11 @@ class TestBadRequests(BaseAPITest):
     def test_user_too_short(self):
         self.valid_request_data['user'] = ''
         self._expect_400(self.valid_request_data)
+
+    def test_working_directory_non_string(self):
+        self.valid_request_data['working_directory'] = None
+        self._expect_400(self.valid_request_data)
+
+    def test_working_directory_too_short(self):
+        self.valid_request_data['working_directory'] = ''
+        self._expect_400(self.valid_request_data)
