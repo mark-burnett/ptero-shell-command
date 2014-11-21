@@ -2,6 +2,7 @@ celery
 flask
 flask-restful
 gunicorn
+jsonschema
 librabbitmq
 python-dateutil
 python-statsd
