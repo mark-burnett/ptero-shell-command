@@ -23,3 +23,11 @@ class TestBadRequests(BaseAPITest):
         for param in ['commandLine', 'user', 'workingDirectory']:
             self.valid_request_data.pop(param)
             self._expect_400(self.valid_request_data)
+
+    def test_command_line_too_short(self):
+        self.valid_request_data['commandLine'] = []
+        self._expect_400(self.valid_request_data)
+
+    def test_command_line_contains_non_strings(self):
+        self.valid_request_data['commandLine'] = ['foo', 1, 'bar']
+        self._expect_400(self.valid_request_data)
