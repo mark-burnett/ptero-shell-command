@@ -1,6 +1,7 @@
 # PTero Shell Command Service
 [![Build Status](https://travis-ci.org/genome/ptero-shell-command.png?branch=master)](https://travis-ci.org/genome/ptero-shell-command)
 [![Coverage Status](https://coveralls.io/repos/genome/ptero-shell-command/badge.png)](https://coveralls.io/r/genome/ptero-shell-command)
+[![Requirements Status](https://requires.io/github/genome/ptero-shell-command/requirements.svg?branch=master)](https://requires.io/github/genome/ptero-shell-command/requirements/?branch=master)
 
 This project provides a way for the PTero workflow system to run shell commands
 using [Celery](http://www.celeryproject.org/) via a REST API.
