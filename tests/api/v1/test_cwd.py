@@ -1,6 +1,5 @@
 from .base import BaseAPITest
 import os
-import simplejson
 
 
 class TestCwd(BaseAPITest):
