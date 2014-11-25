@@ -1,5 +1,5 @@
 from .base import BaseAPITest
-import simplejson
+import json
 
 
 class TestMockWebserver(BaseAPITest):
@@ -8,7 +8,7 @@ class TestMockWebserver(BaseAPITest):
         import requests
         request_body = {"bob": "hi im your friend"}
         response = requests.put(callback_server.url,
-                simplejson.dumps(request_body))
+                json.dumps(request_body))
         self.assertEqual(302, response.status_code)
 
         datas = callback_server.stop()
