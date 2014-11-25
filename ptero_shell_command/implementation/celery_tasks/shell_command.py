@@ -42,7 +42,8 @@ class ShellCommandTask(celery.Task):
                 self.callback('error', callbacks, jobId=self.request.id,
                     errorMessage='Command not found: %s' % command_line[0])
             else:
-                raise e
+                self.callback('error', callbacks, jobID=self.request.id,
+                        errorMessage=e.message)
             return False
 
     def callback(self, status, callbacks, **kwargs):
