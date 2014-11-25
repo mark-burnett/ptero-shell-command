@@ -1,5 +1,4 @@
 from .base import BaseAPITest
-import simplejson
 
 
 class TestBadRequests(BaseAPITest):
