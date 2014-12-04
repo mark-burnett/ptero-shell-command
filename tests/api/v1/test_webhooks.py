@@ -44,7 +44,7 @@ class TestWebhooks(BaseAPITest):
         ]
         self.assertEqual(expected_data, webhook_data)
 
-    def test_succeeded_webhook(self):
+    def test_ended_webhook_success(self):
         webhook_target = self.create_webhook_server([200])
 
         post_response = self.post(self.jobs_url, {
@@ -68,7 +68,7 @@ class TestWebhooks(BaseAPITest):
         ]
         self.assertEqual(expected_data, webhook_data)
 
-    def test_failed_webhook(self):
+    def test_ended_webhook_failure(self):
         webhook_target = self.create_webhook_server([200])
 
         post_response = self.post(self.jobs_url, {
