@@ -1,2 +1,2 @@
-from .http_callback import HTTPCallbackTask
+from .webhook import WebhookTask
 from .shell_command import ShellCommandTask

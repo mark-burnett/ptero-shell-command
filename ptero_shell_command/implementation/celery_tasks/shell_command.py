@@ -56,7 +56,7 @@ class ShellCommandTask(celery.Task):
 
     def _get_http_task(self):
         return celery.current_app.tasks[
-'ptero_shell_command.implementation.celery_tasks.http_callback.HTTPCallbackTask'
+'ptero_shell_command.implementation.celery_tasks.webhook.WebhookTask'
         ]
 
     def _setup_execution_environment(self, umask, user, working_directory):
