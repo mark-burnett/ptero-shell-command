@@ -59,7 +59,7 @@ class TestWebhooks(BaseAPITest):
         webhook_data = webhook_target.stop()
         expected_data = [
             {
-                'status': 'ended',
+                'status': 'success',
                 'exitCode': 0,
                 'stdout': '',
                 'stderr': '',
@@ -83,7 +83,7 @@ class TestWebhooks(BaseAPITest):
         webhook_data = webhook_target.stop()
         expected_data = [
             {
-                'status': 'ended',
+                'status': 'failure',
                 'exitCode': 1,
                 'stdout': '',
                 'stderr': '',
@@ -162,7 +162,7 @@ class TestWebhooks(BaseAPITest):
                 'jobId': post_response.DATA['jobId'],
             },
             {
-                'status': 'ended',
+                'status': 'success',
                 'exitCode': 0,
                 'stdout': '',
                 'stderr': '',
