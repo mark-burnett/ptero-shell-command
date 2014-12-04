@@ -9,11 +9,11 @@ class PreExecFailed(Exception): pass
 
 class ShellCommandTask(celery.Task):
     def run(self, command_line, umask, user, working_directory,
-        environment=None, stdin=None, callbacks=None):
-        self.callback('begun', callbacks, jobId=self.request.id)
+        environment=None, stdin=None, webhooks=None):
+        self.webhook('begun', webhooks, jobId=self.request.id)
 
         if user == 'root':
-            self.callback('error', callbacks, jobId=self.request.id,
+            self.webhook('error', webhooks, jobId=self.request.id,
                 errorMessage='Refusing to execute job as root user')
             return False
 
@@ -29,30 +29,30 @@ class ShellCommandTask(celery.Task):
 
             exit_code = p.wait()
 
-            self.callback('ended', callbacks, exitCode=exit_code,
+            self.webhook('ended', webhooks, exitCode=exit_code,
                     stdout=stdout_data, stderr=stderr_data,
                     jobId=self.request.id)
 
             return exit_code == 0
         except PreExecFailed as e:
-            self.callback('error', callbacks, jobId=self.request.id, errorMessage=e.message)
+            self.webhook('error', webhooks, jobId=self.request.id, errorMessage=e.message)
             return False
         except OSError as e:
             if e.errno == 2:
-                self.callback('error', callbacks, jobId=self.request.id,
+                self.webhook('error', webhooks, jobId=self.request.id,
                     errorMessage='Command not found: %s' % command_line[0])
             else:
-                self.callback('error', callbacks, jobID=self.request.id,
+                self.webhook('error', webhooks, jobID=self.request.id,
                         errorMessage=e.message)
             return False
 
-    def callback(self, status, callbacks, **kwargs):
-        if callbacks is None:
+    def webhook(self, status, webhooks, **kwargs):
+        if webhooks is None:
             return
 
-        if status in callbacks:
+        if status in webhooks:
             task = self._get_http_task()
-            task.delay(callbacks[status], status=status, **kwargs)
+            task.delay(webhooks[status], status=status, **kwargs)
 
     def _get_http_task(self):
         return celery.current_app.tasks[

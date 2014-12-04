@@ -15,10 +15,10 @@ class Backend(object):
         ]
 
     def create_job(self, command_line, user, working_directory, umask=None,
-        environment={}, stdin=None, callbacks=None):
+        environment={}, stdin=None, webhooks=None):
         task = self.shell_command.delay( command_line, umask, user,
             working_directory, environment=environment, stdin=stdin,
-            callbacks=callbacks)
+            webhooks=webhooks)
 
         return task.id
 
