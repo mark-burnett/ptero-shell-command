@@ -10,7 +10,6 @@ class PreExecFailed(Exception): pass
 class ShellCommandTask(celery.Task):
     def run(self, command_line, umask, user, working_directory,
         environment=None, stdin=None, webhooks=None):
-        self.webhook('begun', webhooks, status='begun', jobId=self.request.id)
 
         if user == 'root':
             self.webhook('error', webhooks, status='error', jobId=self.request.id,
@@ -22,6 +21,8 @@ class ShellCommandTask(celery.Task):
                 preexec_fn=lambda :self._setup_execution_environment(umask, user, working_directory),
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+            self.webhook('begun', webhooks, status='running', jobId=self.request.id)
 
             # XXX We cannot use communicate for real, because communicate buffers
             # the data in memory until the process ends.

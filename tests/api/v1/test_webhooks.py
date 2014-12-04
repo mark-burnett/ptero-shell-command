@@ -17,7 +17,7 @@ class TestWebhooks(BaseAPITest):
         webhook_data = webhook_target.stop()
         expected_data = [
             {
-                'status': 'begun',
+                'status': 'running',
                 'jobId': post_response.DATA['jobId'],
             },
         ]
@@ -38,7 +38,7 @@ class TestWebhooks(BaseAPITest):
         webhook_data = webhook_target.stop()
         expected_data = [
             {
-                'status': 'begun',
+                'status': 'running',
                 'jobId': post_response.DATA['jobId'],
             },
         ]
@@ -158,7 +158,7 @@ class TestWebhooks(BaseAPITest):
         webhook_data = webhook_target.stop()
         expected_data = [
             {
-                'status': 'begun',
+                'status': 'running',
                 'jobId': post_response.DATA['jobId'],
             },
             {
