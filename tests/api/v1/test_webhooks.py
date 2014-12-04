@@ -3,18 +3,18 @@ from .base import BaseAPITest
 
 class TestWebhooks(BaseAPITest):
     def test_begun_callback(self):
-        callback_server = self.create_callback_server([200])
+        webhook_target = self.create_webhook_server([200])
 
         post_response = self.post(self.jobs_url, {
             'commandLine': ['true'],
             'user': self.job_user,
             'workingDirectory': self.job_working_directory,
             'callbacks': {
-                'begun': callback_server.url,
+                'begun': webhook_target.url,
             },
         })
 
-        webhook_data = callback_server.stop()
+        webhook_data = webhook_target.stop()
         expected_data = [
             {
                 'status': 'begun',
@@ -24,18 +24,18 @@ class TestWebhooks(BaseAPITest):
         self.assertEqual(expected_data, webhook_data)
 
     def test_begun_webhook(self):
-        callback_server = self.create_callback_server([200])
+        webhook_target = self.create_webhook_server([200])
 
         post_response = self.post(self.jobs_url, {
             'commandLine': ['true'],
             'user': self.job_user,
             'workingDirectory': self.job_working_directory,
             'webhooks': {
-                'begun': callback_server.url,
+                'begun': webhook_target.url,
             },
         })
 
-        webhook_data = callback_server.stop()
+        webhook_data = webhook_target.stop()
         expected_data = [
             {
                 'status': 'begun',
@@ -45,18 +45,18 @@ class TestWebhooks(BaseAPITest):
         self.assertEqual(expected_data, webhook_data)
 
     def test_succeeded_webhook(self):
-        callback_server = self.create_callback_server([200])
+        webhook_target = self.create_webhook_server([200])
 
         post_response = self.post(self.jobs_url, {
             'commandLine': ['true'],
             'user': self.job_user,
             'workingDirectory': self.job_working_directory,
             'webhooks': {
-                'ended': callback_server.url,
+                'ended': webhook_target.url,
             },
         })
 
-        webhook_data = callback_server.stop()
+        webhook_data = webhook_target.stop()
         expected_data = [
             {
                 'status': 'ended',
@@ -69,18 +69,18 @@ class TestWebhooks(BaseAPITest):
         self.assertEqual(expected_data, webhook_data)
 
     def test_failed_webhook(self):
-        callback_server = self.create_callback_server([200])
+        webhook_target = self.create_webhook_server([200])
 
         post_response = self.post(self.jobs_url, {
             'commandLine': ['false'],
             'user': self.job_user,
             'workingDirectory': self.job_working_directory,
             'webhooks': {
-                'ended': callback_server.url,
+                'ended': webhook_target.url,
             },
         })
 
-        webhook_data = callback_server.stop()
+        webhook_data = webhook_target.stop()
         expected_data = [
             {
                 'status': 'ended',
@@ -93,19 +93,19 @@ class TestWebhooks(BaseAPITest):
         self.assertEqual(expected_data, webhook_data)
 
     def test_multiple_webhooks(self):
-        callback_server = self.create_callback_server([200, 200])
+        webhook_target = self.create_webhook_server([200, 200])
 
         post_response = self.post(self.jobs_url, {
             'commandLine': ['true'],
             'user': self.job_user,
             'workingDirectory': self.job_working_directory,
             'webhooks': {
-                'begun': callback_server.url,
-                'ended': callback_server.url,
+                'begun': webhook_target.url,
+                'ended': webhook_target.url,
             },
         })
 
-        webhook_data = callback_server.stop()
+        webhook_data = webhook_target.stop()
         expected_data = [
             {
                 'status': 'begun',
@@ -122,7 +122,7 @@ class TestWebhooks(BaseAPITest):
         self.assertEqual(expected_data, webhook_data)
 
     def test_environment_set_for_job(self):
-        callback_server = self.create_callback_server([200])
+        webhook_target = self.create_webhook_server([200])
         environment = {
             'FOO': 'bar',
         }
@@ -133,13 +133,13 @@ class TestWebhooks(BaseAPITest):
             'workingDirectory': self.job_working_directory,
             'environment': environment,
             'webhooks': {
-                'ended': callback_server.url,
+                'ended': webhook_target.url,
             },
         }
 
         self.post(self.jobs_url, post_data)
 
-        webhook_data = callback_server.stop()
+        webhook_data = webhook_target.stop()
 
         stdout = webhook_data[0]['stdout']
         actual_environment = _extract_environment_dict(stdout)
@@ -147,7 +147,7 @@ class TestWebhooks(BaseAPITest):
         self.assertEqual(environment, actual_environment)
 
     def test_stdin_stdout_pass_through(self):
-        callback_server = self.create_callback_server([200])
+        webhook_target = self.create_webhook_server([200])
         stdin = 'this is just some text'
 
         post_data = {
@@ -156,28 +156,28 @@ class TestWebhooks(BaseAPITest):
             'workingDirectory': self.job_working_directory,
             'stdin': stdin,
             'webhooks': {
-                'ended': callback_server.url,
+                'ended': webhook_target.url,
             },
         }
 
         self.post(self.jobs_url, post_data)
 
-        webhook_data = callback_server.stop()
+        webhook_data = webhook_target.stop()
         self.assertEqual(stdin, webhook_data[0]['stdout'])
 
     def test_command_not_found(self):
-        callback_server = self.create_callback_server([200])
+        webhook_target = self.create_webhook_server([200])
 
         post_response = self.post(self.jobs_url, {
             'commandLine': ['bad-command'],
             'user': self.job_user,
             'workingDirectory': self.job_working_directory,
             'webhooks': {
-                'error': callback_server.url,
+                'error': webhook_target.url,
             },
         })
 
-        webhook_data = callback_server.stop()
+        webhook_data = webhook_target.stop()
         expected_data = [
             {
                 'status': 'error',

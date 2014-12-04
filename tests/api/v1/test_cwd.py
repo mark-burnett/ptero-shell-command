@@ -4,37 +4,37 @@ import os
 
 class TestCwd(BaseAPITest):
     def test_job_working_directory(self):
-        callback_server = self.create_callback_server([200])
+        webhook_target = self.create_webhook_server([200])
 
         post_data = {
             'commandLine': ['/bin/pwd'],
             'user': self.job_user,
             'workingDirectory': self.job_working_directory,
             'webhooks': {
-                'ended': callback_server.url,
+                'ended': webhook_target.url,
             },
         }
 
         self.post(self.jobs_url, post_data)
 
-        webhook_data = callback_server.stop()
+        webhook_data = webhook_target.stop()
         actual_working_directory = webhook_data[0]['stdout'].strip('\n')
         self.assertEqual(self.job_working_directory, actual_working_directory)
 
     def test_job_working_directory_does_not_exist(self):
-        callback_server = self.create_callback_server([200])
+        webhook_target = self.create_webhook_server([200])
 
         post_data = {
             'commandLine': ['/bin/pwd'],
             'user': self.job_user,
             'workingDirectory': '/does/not/exist',
             'webhooks': {
-                'error': callback_server.url,
+                'error': webhook_target.url,
             },
         }
 
         post_response = self.post(self.jobs_url, post_data)
-        webhook_data = callback_server.stop()
+        webhook_data = webhook_target.stop()
         expected_data = [
             {
                 'status': 'error',
@@ -45,7 +45,7 @@ class TestCwd(BaseAPITest):
         self.assertEqual(webhook_data, expected_data)
 
     def test_job_working_directory_access_denied(self):
-        callback_server = self.create_callback_server([200])
+        webhook_target = self.create_webhook_server([200])
 
         os.chmod(self.job_working_directory, 0)
         post_data = {
@@ -53,12 +53,12 @@ class TestCwd(BaseAPITest):
             'user': self.job_user,
             'workingDirectory': self.job_working_directory,
             'webhooks': {
-                'error': callback_server.url,
+                'error': webhook_target.url,
             },
         }
 
         post_response = self.post(self.jobs_url, post_data)
-        webhook_data = callback_server.stop()
+        webhook_data = webhook_target.stop()
         expected_data = [
             {
                 'status': 'error',

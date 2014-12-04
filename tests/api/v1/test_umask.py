@@ -9,7 +9,7 @@ class TestUmask(BaseAPITest):
         _test_umask_set_for_job(self, 0777)
 
 def _test_umask_set_for_job(self, umask):
-    callback_server = self.create_callback_server([200])
+    webhook_target = self.create_webhook_server([200])
 
     post_data = {
         'commandLine': ['/bin/bash', '-c', 'umask'],
@@ -17,12 +17,12 @@ def _test_umask_set_for_job(self, umask):
         'workingDirectory': self.job_working_directory,
         'umask': umask,
         'webhooks': {
-            'ended': callback_server.url,
+            'ended': webhook_target.url,
         },
     }
 
     self.post(self.jobs_url, post_data)
 
-    webhook_data = callback_server.stop()
+    webhook_data = webhook_target.stop()
     actual_umask = webhook_data[0]['stdout'].strip('\n')
     self.assertEqual(oct(umask).zfill(4), actual_umask)
