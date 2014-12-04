@@ -2,7 +2,7 @@ from .base import BaseAPITest
 
 
 class TestWebhooks(BaseAPITest):
-    def test_begun_webhook(self):
+    def test_begun_callback(self):
         callback_server = self.create_callback_server([200])
 
         post_response = self.post(self.jobs_url, {
@@ -10,6 +10,27 @@ class TestWebhooks(BaseAPITest):
             'user': self.job_user,
             'workingDirectory': self.job_working_directory,
             'callbacks': {
+                'begun': callback_server.url,
+            },
+        })
+
+        webhook_data = callback_server.stop()
+        expected_data = [
+            {
+                'status': 'begun',
+                'jobId': post_response.DATA['jobId'],
+            },
+        ]
+        self.assertEqual(expected_data, webhook_data)
+
+    def test_begun_webhook(self):
+        callback_server = self.create_callback_server([200])
+
+        post_response = self.post(self.jobs_url, {
+            'commandLine': ['true'],
+            'user': self.job_user,
+            'workingDirectory': self.job_working_directory,
+            'webhooks': {
                 'begun': callback_server.url,
             },
         })

@@ -11,16 +11,6 @@
     },
     "type": "object",
     "properties": {
-        "callbacks": {
-            "type": "object",
-            "properties": {
-                "begun": { "$ref": "#/definitions/webhook" },
-                "ended": { "$ref": "#/definitions/webhook" },
-                "cancelled": { "$ref": "#/definitions/webhook" },
-                "error": { "$ref": "#/definitions/webhook" }
-            },
-            "additionalProperties": false
-        },
         "commandLine": {
             "type": "array",
             "description": "TODO what happens when passing empty strings to commandLine/exec?",
@@ -46,6 +36,18 @@
         "workingDirectory": {
             "type": "string",
             "minLength": 1
+        }
+    },
+    "patternProperties": {
+        "^(callbacks|webhooks)$": {
+            "type": "object",
+            "properties": {
+                "begun": { "$ref": "#/definitions/webhook" },
+                "ended": { "$ref": "#/definitions/webhook" },
+                "cancelled": { "$ref": "#/definitions/webhook" },
+                "error": { "$ref": "#/definitions/webhook" }
+            },
+            "additionalProperties": false
         }
     },
     "required": ["commandLine", "user", "workingDirectory"],

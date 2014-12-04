@@ -17,6 +17,7 @@ def _schema_path(schema_name):
 _POST_JOB_SCHEMA = _load_schema('post_job')
 _POST_JOB_KEYS_RENAME = {
     'commandLine': 'command_line',
+    'webhooks': 'callbacks',
     'workingDirectory': 'working_directory',
 }
 def get_job_post_data():
