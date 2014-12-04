@@ -33,7 +33,16 @@ class ShellCommandTask(celery.Task):
                     stdout=stdout_data, stderr=stderr_data,
                     jobId=self.request.id)
 
-            return exit_code == 0
+            if exit_code == 0:
+                self.webhook('success', webhooks, exitCode=exit_code,
+                    stdout=stdout_data, stderr=stderr_data,
+                    jobId=self.request.id)
+                return True
+            else:
+                self.webhook('failure', webhooks, exitCode=exit_code,
+                    stdout=stdout_data, stderr=stderr_data,
+                    jobId=self.request.id)
+                return False
         except PreExecFailed as e:
             self.webhook('error', webhooks, jobId=self.request.id, errorMessage=e.message)
             return False

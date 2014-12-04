@@ -44,7 +44,9 @@
             "properties": {
                 "begun": { "$ref": "#/definitions/webhook" },
                 "ended": { "$ref": "#/definitions/webhook" },
-                "error": { "$ref": "#/definitions/webhook" }
+                "error": { "$ref": "#/definitions/webhook" },
+                "success": { "$ref": "#/definitions/webhook" },
+                "failure": { "$ref": "#/definitions/webhook" }
             },
             "additionalProperties": false
         }

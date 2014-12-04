@@ -92,6 +92,56 @@ class TestWebhooks(BaseAPITest):
         ]
         self.assertEqual(expected_data, webhook_data)
 
+    def test_success_and_failure_webhooks_on_success(self):
+        webhook_target = self.create_webhook_server([200])
+
+        post_response = self.post(self.jobs_url, {
+            'commandLine': ['true'],
+            'user': self.job_user,
+            'workingDirectory': self.job_working_directory,
+            'webhooks': {
+                'success': webhook_target.url,
+                'failure': webhook_target.url,
+            },
+        })
+
+        webhook_data = webhook_target.stop()
+        expected_data = [
+            {
+                'status': 'success',
+                'exitCode': 0,
+                'stdout': '',
+                'stderr': '',
+                'jobId': post_response.DATA['jobId'],
+            },
+        ]
+        self.assertEqual(expected_data, webhook_data)
+
+    def test_success_and_failure_webhooks_on_failure(self):
+        webhook_target = self.create_webhook_server([200])
+
+        post_response = self.post(self.jobs_url, {
+            'commandLine': ['false'],
+            'user': self.job_user,
+            'workingDirectory': self.job_working_directory,
+            'webhooks': {
+                'success': webhook_target.url,
+                'failure': webhook_target.url,
+            },
+        })
+
+        webhook_data = webhook_target.stop()
+        expected_data = [
+            {
+                'status': 'failure',
+                'exitCode': 1,
+                'stdout': '',
+                'stderr': '',
+                'jobId': post_response.DATA['jobId'],
+            },
+        ]
+        self.assertEqual(expected_data, webhook_data)
+
     def test_multiple_webhooks(self):
         webhook_target = self.create_webhook_server([200, 200])
 
