@@ -12,7 +12,7 @@ class TestDropPermissions(BaseAPITest):
             'commandLine': ['true'],
             'user': user,
             'workingDirectory': self.job_working_directory,
-            'callbacks': {
+            'webhooks': {
                 'error': callback_server.url,
             },
         })
@@ -39,7 +39,7 @@ class TestDropPermissions(BaseAPITest):
             'commandLine': ['id'],
             'user': user,
             'workingDirectory': self.job_working_directory,
-            'callbacks': {
+            'webhooks': {
                 'ended': callback_server.url,
             },
         })
@@ -63,7 +63,7 @@ class TestDropPermissions(BaseAPITest):
             'commandLine': ['whoami'],
             'user': user,
             'workingDirectory': self.job_working_directory,
-            'callbacks': {
+            'webhooks': {
                 'error': callback_server.url,
             },
         })
@@ -86,7 +86,7 @@ class TestDropPermissions(BaseAPITest):
             'commandLine': ['true'],
             'user': user,
             'workingDirectory': self.job_working_directory,
-            'callbacks': {
+            'webhooks': {
                 'error': callback_server.url,
             },
         })

@@ -16,7 +16,7 @@ def _test_umask_set_for_job(self, umask):
         'user': self.job_user,
         'workingDirectory': self.job_working_directory,
         'umask': umask,
-        'callbacks': {
+        'webhooks': {
             'ended': callback_server.url,
         },
     }

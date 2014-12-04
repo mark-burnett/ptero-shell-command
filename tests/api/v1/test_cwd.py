@@ -10,7 +10,7 @@ class TestCwd(BaseAPITest):
             'commandLine': ['/bin/pwd'],
             'user': self.job_user,
             'workingDirectory': self.job_working_directory,
-            'callbacks': {
+            'webhooks': {
                 'ended': callback_server.url,
             },
         }
@@ -28,7 +28,7 @@ class TestCwd(BaseAPITest):
             'commandLine': ['/bin/pwd'],
             'user': self.job_user,
             'workingDirectory': '/does/not/exist',
-            'callbacks': {
+            'webhooks': {
                 'error': callback_server.url,
             },
         }
@@ -52,7 +52,7 @@ class TestCwd(BaseAPITest):
             'commandLine': ['/bin/pwd'],
             'user': self.job_user,
             'workingDirectory': self.job_working_directory,
-            'callbacks': {
+            'webhooks': {
                 'error': callback_server.url,
             },
         }

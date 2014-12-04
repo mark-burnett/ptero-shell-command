@@ -51,7 +51,7 @@ class TestWebhooks(BaseAPITest):
             'commandLine': ['true'],
             'user': self.job_user,
             'workingDirectory': self.job_working_directory,
-            'callbacks': {
+            'webhooks': {
                 'ended': callback_server.url,
             },
         })
@@ -75,7 +75,7 @@ class TestWebhooks(BaseAPITest):
             'commandLine': ['false'],
             'user': self.job_user,
             'workingDirectory': self.job_working_directory,
-            'callbacks': {
+            'webhooks': {
                 'ended': callback_server.url,
             },
         })
@@ -99,7 +99,7 @@ class TestWebhooks(BaseAPITest):
             'commandLine': ['true'],
             'user': self.job_user,
             'workingDirectory': self.job_working_directory,
-            'callbacks': {
+            'webhooks': {
                 'begun': callback_server.url,
                 'ended': callback_server.url,
             },
@@ -132,7 +132,7 @@ class TestWebhooks(BaseAPITest):
             'user': self.job_user,
             'workingDirectory': self.job_working_directory,
             'environment': environment,
-            'callbacks': {
+            'webhooks': {
                 'ended': callback_server.url,
             },
         }
@@ -155,7 +155,7 @@ class TestWebhooks(BaseAPITest):
             'user': self.job_user,
             'workingDirectory': self.job_working_directory,
             'stdin': stdin,
-            'callbacks': {
+            'webhooks': {
                 'ended': callback_server.url,
             },
         }
@@ -172,7 +172,7 @@ class TestWebhooks(BaseAPITest):
             'commandLine': ['bad-command'],
             'user': self.job_user,
             'workingDirectory': self.job_working_directory,
-            'callbacks': {
+            'webhooks': {
                 'error': callback_server.url,
             },
         })

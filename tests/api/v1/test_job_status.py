@@ -9,7 +9,7 @@ class TestJobStatus(BaseAPITest):
             'commandLine': ['true'],
             'user': self.job_user,
             'workingDirectory': self.job_working_directory,
-            'callbacks': {
+            'webhooks': {
                 'ended': callback_server.url,
             },
         })
@@ -26,7 +26,7 @@ class TestJobStatus(BaseAPITest):
             'commandLine': ['false'],
             'user': self.job_user,
             'workingDirectory': self.job_working_directory,
-            'callbacks': {
+            'webhooks': {
                 'ended': callback_server.url,
             },
         })
@@ -43,7 +43,7 @@ class TestJobStatus(BaseAPITest):
             'commandLine': ['sleep', '10'],
             'user': self.job_user,
             'workingDirectory': self.job_working_directory,
-            'callbacks': {
+            'webhooks': {
                 'begun': callback_server.url,
             },
         })
