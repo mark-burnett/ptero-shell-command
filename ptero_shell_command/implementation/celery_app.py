@@ -11,7 +11,7 @@ app = celery.Celery('PTero-shell-command-celery', include=TASK_PATH)
 app.conf['CELERY_ROUTES'] = (
     {
         TASK_PATH + '.shell_command.ShellCommandTask': {'queue': 'fork'},
-        TASK_PATH + '.http_callback.HTTPCallbackTask': {'queue': 'http'},
+        TASK_PATH + '.webhook.WebhookTask': {'queue': 'http'},
     },
 )
 

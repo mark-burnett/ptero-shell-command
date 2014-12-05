@@ -9,11 +9,10 @@ class PreExecFailed(Exception): pass
 
 class ShellCommandTask(celery.Task):
     def run(self, command_line, umask, user, working_directory,
-        environment=None, stdin=None, callbacks=None):
-        self.callback('begun', callbacks, jobId=self.request.id)
+        environment=None, stdin=None, webhooks=None):
 
         if user == 'root':
-            self.callback('error', callbacks, jobId=self.request.id,
+            self.webhook('error', webhooks, status='error', jobId=self.request.id,
                 errorMessage='Refusing to execute job as root user')
             return False
 
@@ -23,40 +22,60 @@ class ShellCommandTask(celery.Task):
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
+            self.webhook('begun', webhooks, status='running', jobId=self.request.id)
+
             # XXX We cannot use communicate for real, because communicate buffers
             # the data in memory until the process ends.
             stdout_data, stderr_data = p.communicate(stdin)
 
             exit_code = p.wait()
 
-            self.callback('ended', callbacks, exitCode=exit_code,
-                    stdout=stdout_data, stderr=stderr_data,
-                    jobId=self.request.id)
+            if exit_code == 0:
+                status='success'
+            else:
+                status='failure'
 
+            webhook_data = {
+                'status': status,
+                'jobId': self.request.id,
+                'exitCode': exit_code,
+                'stdout': stdout_data,
+                'stderr': stderr_data}
+
+            if exit_code == 0:
+                self.webhook('success', webhooks, **webhook_data)
+            else:
+                self.webhook('failure', webhooks, **webhook_data)
+
+            self.webhook('ended', webhooks, **webhook_data)
             return exit_code == 0
+
         except PreExecFailed as e:
-            self.callback('error', callbacks, jobId=self.request.id, errorMessage=e.message)
+            self.webhook('error', webhooks, status='error',
+                jobId=self.request.id, errorMessage=e.message)
             return False
+
         except OSError as e:
             if e.errno == 2:
-                self.callback('error', callbacks, jobId=self.request.id,
+                self.webhook('error', webhooks, status='error',
+                    jobId=self.request.id,
                     errorMessage='Command not found: %s' % command_line[0])
             else:
-                self.callback('error', callbacks, jobID=self.request.id,
+                self.webhook('error', webhooks, status='error', jobID=self.request.id,
                         errorMessage=e.message)
             return False
 
-    def callback(self, status, callbacks, **kwargs):
-        if callbacks is None:
+    def webhook(self, webhook_name, webhooks, **kwargs):
+        if webhooks is None:
             return
 
-        if status in callbacks:
+        if webhook_name in webhooks:
             task = self._get_http_task()
-            task.delay(callbacks[status], status=status, **kwargs)
+            task.delay(webhooks[webhook_name], **kwargs)
 
     def _get_http_task(self):
         return celery.current_app.tasks[
-'ptero_shell_command.implementation.celery_tasks.http_callback.HTTPCallbackTask'
+'ptero_shell_command.implementation.celery_tasks.webhook.WebhookTask'
         ]
 
     def _setup_execution_environment(self, umask, user, working_directory):

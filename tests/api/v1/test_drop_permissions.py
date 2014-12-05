@@ -5,19 +5,19 @@ import unittest
 
 class TestDropPermissions(BaseAPITest):
     def test_running_job_as_root_should_fail(self):
-        callback_server = self.create_callback_server([200])
+        webhook_target = self.create_webhook_server([200])
 
         user = 'root'
         post_response = self.post(self.jobs_url, {
             'commandLine': ['true'],
             'user': user,
             'workingDirectory': self.job_working_directory,
-            'callbacks': {
-                'error': callback_server.url,
+            'webhooks': {
+                'error': webhook_target.url,
             },
         })
 
-        webhook_data = callback_server.stop()
+        webhook_data = webhook_target.stop()
         expected_data = [
             {
                 'status': 'error',
@@ -30,7 +30,7 @@ class TestDropPermissions(BaseAPITest):
     @unittest.skipIf(not os.environ.get('TEST_WITH_ROOT_WORKERS'),
         "not running fork worker as root")
     def test_job_user_and_group(self):
-        callback_server = self.create_callback_server([200])
+        webhook_target = self.create_webhook_server([200])
 
         user = 'nobody'
         primarygroup = 'nobody'
@@ -39,12 +39,12 @@ class TestDropPermissions(BaseAPITest):
             'commandLine': ['id'],
             'user': user,
             'workingDirectory': self.job_working_directory,
-            'callbacks': {
-                'ended': callback_server.url,
+            'webhooks': {
+                'ended': webhook_target.url,
             },
         })
 
-        webhook_data = callback_server.stop()
+        webhook_data = webhook_target.stop()
         id_result = webhook_data[0]['stdout']
 
         actual_user = self._find_match(r"uid=\d+\((\w+)\)", id_result)
@@ -56,19 +56,19 @@ class TestDropPermissions(BaseAPITest):
     @unittest.skipIf(os.environ.get('TEST_WITH_ROOT_WORKERS'),
         "running fork worker as root")
     def test_user_of_job(self):
-        callback_server = self.create_callback_server([200])
+        webhook_target = self.create_webhook_server([200])
 
         user = 'nobody'
         post_response = self.post(self.jobs_url, {
             'commandLine': ['whoami'],
             'user': user,
             'workingDirectory': self.job_working_directory,
-            'callbacks': {
-                'error': callback_server.url,
+            'webhooks': {
+                'error': webhook_target.url,
             },
         })
 
-        webhook_data = callback_server.stop()
+        webhook_data = webhook_target.stop()
         expected_data = [
             {
                 'status': 'error',
@@ -79,19 +79,19 @@ class TestDropPermissions(BaseAPITest):
         self.assertEqual(expected_data, webhook_data)
 
     def test_exception_on_setuid_failure(self):
-        callback_server = self.create_callback_server([200])
+        webhook_target = self.create_webhook_server([200])
 
         user = '_no_such_user'
         post_response = self.post(self.jobs_url, {
             'commandLine': ['true'],
             'user': user,
             'workingDirectory': self.job_working_directory,
-            'callbacks': {
-                'error': callback_server.url,
+            'webhooks': {
+                'error': webhook_target.url,
             },
         })
 
-        webhook_data = callback_server.stop()
+        webhook_data = webhook_target.stop()
         expected_data = [
             {
                 'status': 'error',

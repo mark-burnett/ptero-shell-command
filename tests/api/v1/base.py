@@ -12,7 +12,7 @@ import unittest
 __all__ = ['BaseAPITest']
 
 
-class CallbackServer:
+class WebhookServer:
     def __init__(self, response_codes):
         self._response_codes = response_codes
         self._webserver = None
@@ -68,8 +68,8 @@ class BaseAPITest(unittest.TestCase):
     def tearDown(self):
         os.rmdir( self.job_working_directory )
 
-    def create_callback_server(self, response_codes):
-        server = CallbackServer(response_codes)
+    def create_webhook_server(self, response_codes):
+        server = WebhookServer(response_codes)
         server.start()
         return server
 
