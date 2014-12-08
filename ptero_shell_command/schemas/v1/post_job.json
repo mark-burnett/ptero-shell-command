@@ -33,13 +33,7 @@
             "description": "TODO we talked about removing this...",
             "type": "string"
         },
-        "workingDirectory": {
-            "type": "string",
-            "minLength": 1
-        }
-    },
-    "patternProperties": {
-        "^(callbacks|webhooks)$": {
+        "webhooks": {
             "type": "object",
             "properties": {
                 "begun": { "$ref": "#/definitions/webhook" },
@@ -49,6 +43,10 @@
                 "failure": { "$ref": "#/definitions/webhook" }
             },
             "additionalProperties": false
+        },
+        "workingDirectory": {
+            "type": "string",
+            "minLength": 1
         }
     },
     "required": ["commandLine", "user", "workingDirectory"],

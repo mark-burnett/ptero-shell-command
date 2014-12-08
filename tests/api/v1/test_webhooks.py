@@ -2,27 +2,6 @@ from .base import BaseAPITest
 
 
 class TestWebhooks(BaseAPITest):
-    def test_begun_callback(self):
-        webhook_target = self.create_webhook_server([200])
-
-        post_response = self.post(self.jobs_url, {
-            'commandLine': ['true'],
-            'user': self.job_user,
-            'workingDirectory': self.job_working_directory,
-            'callbacks': {
-                'begun': webhook_target.url,
-            },
-        })
-
-        webhook_data = webhook_target.stop()
-        expected_data = [
-            {
-                'status': 'running',
-                'jobId': post_response.DATA['jobId'],
-            },
-        ]
-        self.assertEqual(expected_data, webhook_data)
-
     def test_begun_webhook(self):
         webhook_target = self.create_webhook_server([200])
 
