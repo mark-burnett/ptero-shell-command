@@ -38,6 +38,8 @@ class ShellCommandTask(celery.Task):
                 status='success'
             else:
                 status='failure'
+                LOG.debug('stdout %s' % stdout_data)
+                LOG.debug('stderr %s' % stderr_data)
 
             webhook_data = {
                 'status': status,
