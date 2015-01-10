@@ -1,8 +1,11 @@
+from celery.utils.log import get_task_logger
 import celery
 import os
 import pwd
 import subprocess
 
+LOG = get_task_logger(__name__)
+LOG.setLevel(os.environ['PTERO_SHELL_COMMAND_LOG_LEVEL'].upper())
 __all__ = ['ShellCommandTask']
 
 class PreExecFailed(Exception): pass
@@ -17,6 +20,7 @@ class ShellCommandTask(celery.Task):
             return False
 
         try:
+            LOG.debug('command_line %s' % command_line)
             p = subprocess.Popen(command_line, env=environment, close_fds=True,
                 preexec_fn=lambda :self._setup_execution_environment(umask, user, working_directory),
                 stdin=subprocess.PIPE,
@@ -29,11 +33,13 @@ class ShellCommandTask(celery.Task):
             stdout_data, stderr_data = p.communicate(stdin)
 
             exit_code = p.wait()
-
+            LOG.debug('exit_code %d' % exit_code)
             if exit_code == 0:
                 status='success'
             else:
                 status='failure'
+                LOG.debug('stdout %s' % stdout_data)
+                LOG.debug('stderr %s' % stderr_data)
 
             webhook_data = {
                 'status': status,
@@ -51,16 +57,19 @@ class ShellCommandTask(celery.Task):
             return exit_code == 0
 
         except PreExecFailed as e:
+            LOG.warning('pre-exec failed: %s' % e.message)
             self.webhook('error', webhooks, status='error',
                 jobId=self.request.id, errorMessage=e.message)
             return False
 
         except OSError as e:
             if e.errno == 2:
+                LOG.warning('Command not found: %s' % command_line[0])
                 self.webhook('error', webhooks, status='error',
                     jobId=self.request.id,
                     errorMessage='Command not found: %s' % command_line[0])
             else:
+                LOG.warming('OSError: %s' % e.message)
                 self.webhook('error', webhooks, status='error', jobID=self.request.id,
                         errorMessage=e.message)
             return False
