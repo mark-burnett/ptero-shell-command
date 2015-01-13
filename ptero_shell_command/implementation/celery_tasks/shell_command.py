@@ -69,7 +69,7 @@ class ShellCommandTask(celery.Task):
                     jobId=self.request.id,
                     errorMessage='Command not found: %s' % command_line[0])
             else:
-                LOG.warming('OSError: %s' % e.message)
+                LOG.warning('OSError: %s' % e.message)
                 self.webhook('error', webhooks, status='error', jobID=self.request.id,
                         errorMessage=e.message)
             return False
