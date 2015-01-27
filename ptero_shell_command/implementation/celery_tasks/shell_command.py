@@ -1,11 +1,11 @@
 from celery.utils.log import get_task_logger
 import celery
+import logging
 import os
 import pwd
 import subprocess
 
-LOG = get_task_logger(__name__)
-LOG.setLevel(os.environ['PTERO_SHELL_COMMAND_LOG_LEVEL'].upper())
+LOG = logging.getLogger(__name__)
 __all__ = ['ShellCommandTask']
 
 class PreExecFailed(Exception): pass
