@@ -3,13 +3,17 @@ python: "2.7"
 
 env:
     global:
-        - TEST_WITH_ROOT_WORKERS=1
+        - PTERO_SHELL_COMMAND_TEST_WAIT_TIME
+    matrix:
+        - PTERO_SHELL_COMAMND_TEST_WITH_ROOT_WORKERS=0
+        - PTERO_SHELL_COMAMND_TEST_WITH_ROOT_WORKERS=1
 
 install: pip install tox
 
 before_script: sudo update-alternatives --install /bin/sh sh /bin/bash 100
 
-script: tox
+script:
+    - tox -e py27
 
 after_script:
     - ps -efl > var/log/ps.out

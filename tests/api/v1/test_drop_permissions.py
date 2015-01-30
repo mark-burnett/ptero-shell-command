@@ -27,7 +27,7 @@ class TestDropPermissions(BaseAPITest):
         ]
         self.assertEqual(expected_data, webhook_data)
 
-    @unittest.skipIf(not os.environ.get('TEST_WITH_ROOT_WORKERS'),
+    @unittest.skipIf(not os.environ.get('PTERO_SHELL_COMAMND_TEST_WITH_ROOT_WORKERS'),
         "not running fork worker as root")
     def test_job_user_and_group(self):
         webhook_target = self.create_webhook_server([200])
@@ -53,7 +53,7 @@ class TestDropPermissions(BaseAPITest):
         self.assertEqual(user, actual_user)
         self.assertEqual(primarygroup, actual_user)
 
-    @unittest.skipIf(os.environ.get('TEST_WITH_ROOT_WORKERS'),
+    @unittest.skipIf(os.environ.get('PTERO_SHELL_COMAMND_TEST_WITH_ROOT_WORKERS'),
         "running fork worker as root")
     def test_user_of_job(self):
         webhook_target = self.create_webhook_server([200])
