@@ -10,6 +10,8 @@ env:
 
 install: pip install tox
 
+before_script: sudo update-alternatives --install /bin/sh sh /bin/bash 100
+
 script:
     - tox -e py27
 
