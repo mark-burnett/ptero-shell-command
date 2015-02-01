@@ -7,8 +7,8 @@ class TestMockWebserver(BaseAPITest):
         webhook_target = self.create_webhook_server([302])
         import requests
         request_body = {"bob": "hi im your friend"}
-        response = requests.put(webhook_target.url,
-                json.dumps(request_body))
+        response = requests.put(
+            webhook_target.url, json.dumps(request_body))
         self.assertEqual(302, response.status_code)
 
         datas = webhook_target.stop()

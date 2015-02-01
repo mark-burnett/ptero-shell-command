@@ -8,6 +8,7 @@ class TestUmask(BaseAPITest):
     def test_umask_0777_set_for_job(self):
         _test_umask_set_for_job(self, 0777)
 
+
 def _test_umask_set_for_job(self, umask):
     webhook_target = self.create_webhook_server([200])
 

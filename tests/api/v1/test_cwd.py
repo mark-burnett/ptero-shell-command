@@ -39,7 +39,8 @@ class TestCwd(BaseAPITest):
             {
                 'status': 'error',
                 'jobId': post_response.DATA['jobId'],
-                'errorMessage': 'chdir(/does/not/exist): No such file or directory'
+                'errorMessage': 'chdir(/does/not/exist): '
+                                'No such file or directory'
             },
         ]
         self.assertEqual(webhook_data, expected_data)
@@ -63,7 +64,8 @@ class TestCwd(BaseAPITest):
             {
                 'status': 'error',
                 'jobId': post_response.DATA['jobId'],
-                'errorMessage': 'chdir(%s): Permission denied' % self.job_working_directory
+                'errorMessage': 'chdir(%s): Permission denied' %
+                                self.job_working_directory
             },
         ]
         self.assertEqual(webhook_data, expected_data)

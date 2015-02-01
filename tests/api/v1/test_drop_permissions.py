@@ -3,6 +3,10 @@ import os
 import re
 import unittest
 
+TEST_WITH_ROOT = int(os.environ.get(
+    'PTERO_SHELL_COMAMND_TEST_WITH_ROOT_WORKERS', 0))
+
+
 class TestDropPermissions(BaseAPITest):
     def test_running_job_as_root_should_fail(self):
         webhook_target = self.create_webhook_server([200])
@@ -27,9 +31,7 @@ class TestDropPermissions(BaseAPITest):
         ]
         self.assertEqual(expected_data, webhook_data)
 
-    @unittest.skipIf(
-        not int(os.environ.get('PTERO_SHELL_COMAMND_TEST_WITH_ROOT_WORKERS',0)),
-        "not running fork worker as root")
+    @unittest.skipIf(not TEST_WITH_ROOT, "not running fork worker as root")
     def test_job_user_and_group(self):
         webhook_target = self.create_webhook_server([200])
 
@@ -49,14 +51,11 @@ class TestDropPermissions(BaseAPITest):
         id_result = webhook_data[0]['stdout']
 
         actual_user = self._find_match(r"uid=\d+\((\w+)\)", id_result)
-        actual_primarygroup = self._find_match(r"gid=\d+\((\w+)\)", id_result)
 
         self.assertEqual(user, actual_user)
         self.assertEqual(primarygroup, actual_user)
 
-    @unittest.skipIf(
-        int(os.environ.get('PTERO_SHELL_COMAMND_TEST_WITH_ROOT_WORKERS',0)),
-        "running fork worker as root")
+    @unittest.skipIf(TEST_WITH_ROOT, "running fork worker as root")
     def test_user_of_job(self):
         webhook_target = self.create_webhook_server([200])
 

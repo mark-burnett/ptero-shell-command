@@ -21,11 +21,10 @@ class WebhookServer:
         if self._webserver:
             raise RuntimeError('Cannot start multiple webservers in one test')
         command_line = ['python', self._path,
-                '--stop-after', str(self._timeout),
-                '--response-codes']
+                        '--stop-after', str(self._timeout), '--response-codes']
         command_line.extend(map(str, self._response_codes))
-        self._webserver = subprocess.Popen(command_line,
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        self._webserver = subprocess.Popen(
+            command_line, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         self._wait()
         self._port = int(self._webserver.stderr.readline().rstrip())
 
@@ -66,7 +65,7 @@ class BaseAPITest(unittest.TestCase):
             self.job_working_directory = tempfile.mkdtemp()
 
     def tearDown(self):
-        os.rmdir( self.job_working_directory )
+        os.rmdir(self.job_working_directory)
 
     def create_webhook_server(self, response_codes):
         server = WebhookServer(response_codes)
@@ -85,19 +84,19 @@ class BaseAPITest(unittest.TestCase):
         return _deserialize_response(requests.get(url, params=kwargs))
 
     def patch(self, url, data):
-        return _deserialize_response(requests.patch(url,
-            headers={'content-type': 'application/json'},
-            data=json.dumps(data)))
+        return _deserialize_response(
+            requests.patch(url, headers={'content-type': 'application/json'},
+                           data=json.dumps(data)))
 
     def post(self, url, data):
-        return _deserialize_response(requests.post(url,
-            headers={'content-type': 'application/json'},
-            data=json.dumps(data)))
+        return _deserialize_response(
+            requests.post(url, headers={'content-type': 'application/json'},
+                          data=json.dumps(data)))
 
     def put(self, url, data):
-        return _deserialize_response(requests.put(url,
-            headers={'content-type': 'application/json'},
-            data=json.dumps(data)))
+        return _deserialize_response(
+            requests.put(url, headers={'content-type': 'application/json'},
+                         data=json.dumps(data)))
 
 
 def _deserialize_response(response):

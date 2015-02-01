@@ -1,4 +1,4 @@
-from . import celery_tasks
+from . import celery_tasks  # noqa
 
 
 class Backend(object):
@@ -11,14 +11,15 @@ class Backend(object):
     @property
     def shell_command(self):
         return self.celery_app.tasks[
-'ptero_shell_command.implementation.celery_tasks.shell_command.ShellCommandTask'
+            'ptero_shell_command.implementation.celery_tasks.shell_command.'
+            'ShellCommandTask'
         ]
 
     def create_job(self, command_line, user, working_directory, umask=None,
-        environment={}, stdin=None, webhooks=None):
-        task = self.shell_command.delay( command_line, umask, user,
-            working_directory, environment=environment, stdin=stdin,
-            webhooks=webhooks)
+                   environment={}, stdin=None, webhooks=None):
+        task = self.shell_command.delay(
+            command_line, umask, user, working_directory,
+            environment=environment, stdin=stdin, webhooks=webhooks)
 
         return task.id
 
@@ -26,6 +27,7 @@ class Backend(object):
         task = self.shell_command.AsyncResult(job_id)
 
         return _job_status_from_task(task)
+
 
 def _job_status_from_task(task):
     if task is None:
