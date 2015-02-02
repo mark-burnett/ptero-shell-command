@@ -6,7 +6,7 @@ import pkg_resources
 
 def _load_schema(schema_name):
     return json.load(pkg_resources.resource_stream('ptero_shell_command',
-        _schema_path(schema_name)))
+                     _schema_path(schema_name)))
 
 
 _BASE_PATH = '/'.join(__package__.split('.')[1:])
@@ -21,6 +21,8 @@ _POST_JOB_KEYS_RENAME = {
     'commandLine': 'command_line',
     'workingDirectory': 'working_directory',
 }
+
+
 def get_job_post_data():
     data = request.json
     jsonschema.validate(data, _POST_JOB_SCHEMA)

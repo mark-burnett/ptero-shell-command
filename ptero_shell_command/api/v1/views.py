@@ -1,9 +1,8 @@
 from . import validators
 from flask import g, request, url_for
-from flask.ext.restful import Resource, marshal
+from flask.ext.restful import Resource
 from jsonschema import ValidationError
 from ptero_common.logging_configuration import logged_response
-from ptero_shell_command import exceptions
 import logging
 
 
@@ -16,8 +15,8 @@ class JobListView(Resource):
         try:
             data = validators.get_job_post_data()
             job_id = g.backend.create_job(**data)
-            return {'jobId': job_id}, 201, {'Location': url_for('job',
-                pk=job_id)}
+            return ({'jobId': job_id}, 201,
+                    {'Location': url_for('job', pk=job_id)})
         except ValidationError as e:
             LOG.exception(
                 "JSON body does not pass validation for POST %s: %s",

@@ -1,0 +1,29 @@
+#!/usr/bin/env python
+
+import argparse
+import os
+from ptero_common import devserver
+
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--num-http-workers', type=int, default=1)
+    parser.add_argument('--num-fork-workers', type=int, default=1)
+    parser.add_argument('--logdir', default='-')
+    return parser.parse_args()
+
+def procfile_path():
+    this_dir = os.path.dirname(__file__)
+    if (int(os.environ.get('PTERO_SHELL_COMAMND_TEST_WITH_ROOT_WORKERS', 0))):
+        return os.path.join(this_dir, 'tests', 'scripts', 'Procfile-with-sudo')
+    else:
+        return os.path.join(this_dir, 'tests', 'scripts', 'Procfile')
+
+if __name__ == '__main__':
+    arguments = parse_args()
+    devserver.run(
+        logdir=arguments.logdir, procfile_path=procfile_path(),
+        workers={
+            'fork_worker':arguments.num_fork_workers,
+            'http_worker':arguments.num_http_workers,
+        })
