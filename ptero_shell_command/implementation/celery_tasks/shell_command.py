@@ -87,12 +87,11 @@ class ShellCommandTask(celery.Task):
 
         if webhook_name in webhooks:
             task = self._get_http_task()
-            task.delay(webhooks[webhook_name], **kwargs)
+            task.delay('PUT', webhooks[webhook_name], **kwargs)
 
     def _get_http_task(self):
         return celery.current_app.tasks[
-            'ptero_shell_command.implementation.celery_tasks.'
-            'webhook.WebhookTask'
+            'ptero_common.celery.http.HTTP'
         ]
 
     def _setup_execution_environment(self, umask, user, working_directory):
