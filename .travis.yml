@@ -3,7 +3,7 @@ python: "2.7"
 
 env:
     global:
-        - PTERO_SHELL_COMMAND_TEST_WAIT_TIME
+        - TRAVIS_WAIT_TIME=30
     matrix:
         - PTERO_SHELL_COMAMND_TEST_WITH_ROOT_WORKERS=0
         - PTERO_SHELL_COMAMND_TEST_WITH_ROOT_WORKERS=1
