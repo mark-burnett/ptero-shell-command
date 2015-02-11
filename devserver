@@ -10,6 +10,7 @@ def parse_args():
     parser.add_argument('--num-http-workers', type=int, default=1)
     parser.add_argument('--num-fork-workers', type=int, default=1)
     parser.add_argument('--logdir', default='-')
+    parser.add_argument('--pidfile')
     return parser.parse_args()
 
 def procfile_path():
@@ -26,4 +27,5 @@ if __name__ == '__main__':
         workers={
             'fork_worker':arguments.num_fork_workers,
             'http_worker':arguments.num_http_workers,
-        })
+        },
+        pidfile=arguments.pidfile)
