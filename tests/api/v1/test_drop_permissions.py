@@ -3,8 +3,8 @@ import os
 import re
 import unittest
 
-TEST_WITH_ROOT = int(os.environ.get(
-    'PTERO_SHELL_COMAMND_TEST_WITH_ROOT_WORKERS', 0))
+procfile = os.environ.get('PTERO_SHELL_COMMAND_TEST_PROCFILE', '')
+TEST_WITH_ROOT = re.search('.*sudo.*', procfile)
 
 
 class TestDropPermissions(BaseAPITest):
