@@ -5,8 +5,8 @@ env:
     global:
         - TRAVIS_WAIT_TIME=30
     matrix:
-        - PTERO_SHELL_COMAMND_TEST_WITH_ROOT_WORKERS=0
-        - PTERO_SHELL_COMAMND_TEST_WITH_ROOT_WORKERS=1
+        - PTERO_SHELL_COMMAND_TEST_PROCFILE=tests/scripts/Procfile
+        - PTERO_SHELL_COMMAND_TEST_PROCFILE=tests/scripts/Procfile-with-sudo
 
 install: pip install tox
 
