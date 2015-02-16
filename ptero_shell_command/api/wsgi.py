@@ -6,6 +6,6 @@ app = application.create_app()
 configure_web_logging('SHELL_COMMAND')
 
 if __name__ == '__main__':
-    app.run(host=os.environ['PTERO_SHELL_COMMAND_HOST'],
+    app.run(host='0.0.0.0',
             port=os.environ['PTERO_SHELL_COMMAND_PORT'],
             debug=False, use_reloader=False)
