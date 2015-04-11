@@ -7,7 +7,16 @@
             "type": "string",
             "description": "TODO does the 'uri' format enforce a non-zero length? do we want to enforce that?",
             "format": "uri"
-        }
+        },
+        "webhook_list": {
+            "type": "array",
+            "items": { "$ref": "#/definitions/webhook" },
+            "minItems": 1
+        },
+        "webhook_entry": { "oneOf": [
+            { "$ref": "#/definitions/webhook" },
+            { "$ref": "#/definitions/webhook_list" }
+        ]}
     },
     "type": "object",
     "properties": {
@@ -36,11 +45,11 @@
         "webhooks": {
             "type": "object",
             "properties": {
-                "begun": { "$ref": "#/definitions/webhook" },
-                "ended": { "$ref": "#/definitions/webhook" },
-                "error": { "$ref": "#/definitions/webhook" },
-                "success": { "$ref": "#/definitions/webhook" },
-                "failure": { "$ref": "#/definitions/webhook" }
+                "begun": { "$ref": "#/definitions/webhook_entry" },
+                "ended": { "$ref": "#/definitions/webhook_entry" },
+                "error": { "$ref": "#/definitions/webhook_entry" },
+                "success": { "$ref": "#/definitions/webhook_entry" },
+                "failure": { "$ref": "#/definitions/webhook_entry" }
             },
             "additionalProperties": false
         },

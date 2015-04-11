@@ -150,6 +150,31 @@ class TestWebhooks(BaseAPITest):
         ]
         self.assertEqual(expected_data, webhook_data)
 
+    def test_list_of_webhooks(self):
+        webhook_target = self.create_webhook_server([200, 200])
+
+        post_response = self.post(self.jobs_url, {
+            'commandLine': ['true'],
+            'user': self.job_user,
+            'workingDirectory': self.job_working_directory,
+            'webhooks': {
+                'begun': [webhook_target.url, webhook_target.url]
+            },
+        })
+
+        webhook_data = webhook_target.stop()
+        expected_data = [
+            {
+                'status': 'running',
+                'jobId': post_response.DATA['jobId'],
+            },
+            {
+                'status': 'running',
+                'jobId': post_response.DATA['jobId'],
+            },
+        ]
+        self.assertEqual(expected_data, webhook_data)
+
     def test_environment_set_for_job(self):
         webhook_target = self.create_webhook_server([200])
         environment = {

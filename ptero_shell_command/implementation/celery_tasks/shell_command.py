@@ -87,7 +87,12 @@ class ShellCommandTask(celery.Task):
 
         if webhook_name in webhooks:
             task = self._get_http_task()
-            task.delay('PUT', webhooks[webhook_name], **kwargs)
+            urls = webhooks[webhook_name]
+            if not isinstance(urls, list):
+                urls = [urls]
+
+            for url in urls:
+                task.delay('PUT', url, **kwargs)
 
     def _get_http_task(self):
         return celery.current_app.tasks[
