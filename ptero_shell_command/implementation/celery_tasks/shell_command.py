@@ -3,6 +3,7 @@ import logging
 import os
 import pwd
 import subprocess
+from ptero_common import statuses
 
 LOG = logging.getLogger(__name__)
 __all__ = ['ShellCommandTask']
@@ -17,9 +18,9 @@ class ShellCommandTask(celery.Task):
             environment=None, stdin=None, webhooks=None):
 
         if user == 'root':
-            self.webhook(
-                'error', webhooks, status='error', jobId=self.request.id,
-                errorMessage='Refusing to execute job as root user')
+            self.webhook(statuses.errored, webhooks, status=statuses.errored,
+                    jobId=self.request.id,
+                    errorMessage='Refusing to execute job as root user')
             return False
 
         try:
@@ -64,21 +65,21 @@ class ShellCommandTask(celery.Task):
 
         except PreExecFailed as e:
             LOG.warning('pre-exec failed: %s' % e.message)
-            self.webhook('error', webhooks, status='error',
+            self.webhook(statuses.errored, webhooks, status=statuses.errored,
                          jobId=self.request.id, errorMessage=e.message)
             return False
 
         except OSError as e:
             if e.errno == 2:
                 LOG.warning('Command not found: %s' % command_line[0])
-                self.webhook(
-                    'error', webhooks, status='error', jobId=self.request.id,
-                    errorMessage='Command not found: %s' % command_line[0])
+                self.webhook(statuses.errored, webhooks,
+                        status=statuses.errored, jobId=self.request.id,
+                        errorMessage='Command not found: %s' % command_line[0])
             else:
                 LOG.warning('OSError: %s' % str(e))
-                self.webhook(
-                    'error', webhooks, status='error', jobID=self.request.id,
-                    errorMessage=e.message)
+                self.webhook(statuses.errored, webhooks,
+                        status=statuses.errored, jobID=self.request.id,
+                        errorMessage=e.message)
             return False
 
     def webhook(self, webhook_name, webhooks, **kwargs):

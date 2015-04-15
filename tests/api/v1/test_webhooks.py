@@ -1,4 +1,5 @@
 from .base import BaseAPITest
+from ptero_common import statuses
 
 
 class TestWebhooks(BaseAPITest):
@@ -227,14 +228,14 @@ class TestWebhooks(BaseAPITest):
             'user': self.job_user,
             'workingDirectory': self.job_working_directory,
             'webhooks': {
-                'error': webhook_target.url,
+                statuses.errored: webhook_target.url,
             },
         })
 
         webhook_data = webhook_target.stop()
         expected_data = [
             {
-                'status': 'error',
+                'status': statuses.errored,
                 'errorMessage': 'Command not found: bad-command',
                 'jobId': post_response.DATA['jobId'],
             },

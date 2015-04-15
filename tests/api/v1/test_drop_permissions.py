@@ -2,6 +2,7 @@ from .base import BaseAPITest
 import os
 import re
 import unittest
+from ptero_common import statuses
 
 procfile = os.environ.get('PTERO_SHELL_COMMAND_TEST_PROCFILE', '')
 TEST_WITH_ROOT = re.search('.*sudo.*', procfile)
@@ -17,14 +18,14 @@ class TestDropPermissions(BaseAPITest):
             'user': user,
             'workingDirectory': self.job_working_directory,
             'webhooks': {
-                'error': webhook_target.url,
+                statuses.errored: webhook_target.url,
             },
         })
 
         webhook_data = webhook_target.stop()
         expected_data = [
             {
-                'status': 'error',
+                'status': statuses.errored,
                 'jobId': post_response.DATA['jobId'],
                 'errorMessage': 'Refusing to execute job as root user'
             },
@@ -65,14 +66,14 @@ class TestDropPermissions(BaseAPITest):
             'user': user,
             'workingDirectory': self.job_working_directory,
             'webhooks': {
-                'error': webhook_target.url,
+                statuses.errored: webhook_target.url,
             },
         })
 
         webhook_data = webhook_target.stop()
         expected_data = [
             {
-                'status': 'error',
+                'status': statuses.errored,
                 'jobId': post_response.DATA['jobId'],
                 'errorMessage': 'Failed to setreuid: Operation not permitted'
             }
@@ -88,14 +89,14 @@ class TestDropPermissions(BaseAPITest):
             'user': user,
             'workingDirectory': self.job_working_directory,
             'webhooks': {
-                'error': webhook_target.url,
+                statuses.errored: webhook_target.url,
             },
         })
 
         webhook_data = webhook_target.stop()
         expected_data = [
             {
-                'status': 'error',
+                'status': statuses.errored,
                 'jobId': post_response.DATA['jobId'],
                 'errorMessage': 'getpwnam(): name not found: _no_such_user'
             }

@@ -1,5 +1,6 @@
 from .base import BaseAPITest
 import os
+from ptero_common import statuses
 
 
 class TestCwd(BaseAPITest):
@@ -29,7 +30,7 @@ class TestCwd(BaseAPITest):
             'user': self.job_user,
             'workingDirectory': '/does/not/exist',
             'webhooks': {
-                'error': webhook_target.url,
+                statuses.errored: webhook_target.url,
             },
         }
 
@@ -37,7 +38,7 @@ class TestCwd(BaseAPITest):
         webhook_data = webhook_target.stop()
         expected_data = [
             {
-                'status': 'error',
+                'status': statuses.errored,
                 'jobId': post_response.DATA['jobId'],
                 'errorMessage': 'chdir(/does/not/exist): '
                                 'No such file or directory'
@@ -54,7 +55,7 @@ class TestCwd(BaseAPITest):
             'user': self.job_user,
             'workingDirectory': self.job_working_directory,
             'webhooks': {
-                'error': webhook_target.url,
+                statuses.errored: webhook_target.url,
             },
         }
 
@@ -62,7 +63,7 @@ class TestCwd(BaseAPITest):
         webhook_data = webhook_target.stop()
         expected_data = [
             {
-                'status': 'error',
+                'status': statuses.errored,
                 'jobId': post_response.DATA['jobId'],
                 'errorMessage': 'chdir(%s): Permission denied' %
                                 self.job_working_directory
