@@ -11,7 +11,7 @@ class TestWebhooks(BaseAPITest):
             'user': self.job_user,
             'workingDirectory': self.job_working_directory,
             'webhooks': {
-                'begun': webhook_target.url,
+                statuses.running: webhook_target.url,
             },
         })
 
@@ -130,7 +130,7 @@ class TestWebhooks(BaseAPITest):
             'user': self.job_user,
             'workingDirectory': self.job_working_directory,
             'webhooks': {
-                'begun': webhook_target.url,
+                statuses.running: webhook_target.url,
                 'ended': webhook_target.url,
             },
         })
@@ -159,7 +159,7 @@ class TestWebhooks(BaseAPITest):
             'user': self.job_user,
             'workingDirectory': self.job_working_directory,
             'webhooks': {
-                'begun': [webhook_target.url, webhook_target.url]
+                statuses.running: [webhook_target.url, webhook_target.url]
             },
         })
 

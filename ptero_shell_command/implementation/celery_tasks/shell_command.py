@@ -32,7 +32,7 @@ class ShellCommandTask(celery.Task):
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-            self.webhook('begun', webhooks, status='running',
+            self.webhook(statuses.running, webhooks, status=statuses.running,
                          jobId=self.request.id)
 
             # XXX We cannot use communicate for real, because communicate

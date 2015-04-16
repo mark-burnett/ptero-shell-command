@@ -1,4 +1,5 @@
 from .base import BaseAPITest
+from ptero_common import statuses
 
 
 class TestJobStatus(BaseAPITest):
@@ -44,7 +45,7 @@ class TestJobStatus(BaseAPITest):
             'user': self.job_user,
             'workingDirectory': self.job_working_directory,
             'webhooks': {
-                'begun': webhook_target.url,
+                statuses.running: webhook_target.url,
             },
         })
 
