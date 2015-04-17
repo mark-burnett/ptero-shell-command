@@ -63,7 +63,7 @@ class TestWebhooks(BaseAPITest):
         webhook_data = webhook_target.stop()
         expected_data = [
             {
-                'status': 'failure',
+                'status': statuses.failed,
                 'exitCode': 1,
                 'stdout': '',
                 'stderr': '',
@@ -81,7 +81,7 @@ class TestWebhooks(BaseAPITest):
             'workingDirectory': self.job_working_directory,
             'webhooks': {
                 statuses.succeeded: webhook_target.url,
-                'failure': webhook_target.url,
+                statuses.failed: webhook_target.url,
             },
         })
 
@@ -106,14 +106,14 @@ class TestWebhooks(BaseAPITest):
             'workingDirectory': self.job_working_directory,
             'webhooks': {
                 statuses.succeeded: webhook_target.url,
-                'failure': webhook_target.url,
+                statuses.failed: webhook_target.url,
             },
         })
 
         webhook_data = webhook_target.stop()
         expected_data = [
             {
-                'status': 'failure',
+                'status': statuses.failed,
                 'exitCode': 1,
                 'stdout': '',
                 'stderr': '',

@@ -49,7 +49,7 @@
                 "ended": { "$ref": "#/definitions/webhook_entry" },
                 "errored": { "$ref": "#/definitions/webhook_entry" },
                 "succeeded": { "$ref": "#/definitions/webhook_entry" },
-                "failure": { "$ref": "#/definitions/webhook_entry" }
+                "failed": { "$ref": "#/definitions/webhook_entry" }
             },
             "additionalProperties": false
         },
