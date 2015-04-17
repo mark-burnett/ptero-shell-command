@@ -42,7 +42,7 @@ class ShellCommandTask(celery.Task):
             exit_code = p.wait()
             LOG.debug('exit_code %d' % exit_code)
             if exit_code == 0:
-                status = 'success'
+                status = statuses.succeeded
             else:
                 status = 'failure'
                 LOG.debug('stdout %s' % stdout_data)
@@ -56,7 +56,7 @@ class ShellCommandTask(celery.Task):
                 'stderr': stderr_data}
 
             if exit_code == 0:
-                self.webhook('success', webhooks, **webhook_data)
+                self.webhook(statuses.succeeded, webhooks, **webhook_data)
             else:
                 self.webhook('failure', webhooks, **webhook_data)
 
