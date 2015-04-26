@@ -11,9 +11,12 @@ class TestBadRequests(BaseAPITest):
             'workingDirectory': self.job_working_directory,
         }
 
-    def _expect_400(self, data):
+    def _expect(self, data, status_code):
         post_response = self.post(self.jobs_url, data)
-        self.assertEqual(400, post_response.status_code)
+        self.assertEqual(status_code, post_response.status_code)
+
+    def _expect_400(self, data):
+        self._expect(data, 400)
 
     def test_empty_body(self):
         self._expect_400({})
@@ -27,8 +30,12 @@ class TestBadRequests(BaseAPITest):
         self.valid_request_data['commandLine'] = []
         self._expect_400(self.valid_request_data)
 
-    def test_command_line_contains_non_strings(self):
+    def test_command_line_contains_numbers(self):
         self.valid_request_data['commandLine'] = ['foo', 1, 'bar']
+        self._expect(self.valid_request_data, 201)
+
+    def test_command_line_contains_non_strings(self):
+        self.valid_request_data['commandLine'] = ['foo', True, 'bar']
         self._expect_400(self.valid_request_data)
 
     def test_user_non_string_integer(self):
