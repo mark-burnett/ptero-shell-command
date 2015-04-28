@@ -25,8 +25,8 @@ class ShellCommandTask(celery.Task):
 
         try:
             LOG.debug('command_line %s' % command_line)
-            p = subprocess.Popen(
-                command_line, env=environment, close_fds=True,
+            p = subprocess.Popen([str(x) for x in command_line],
+                env=environment, close_fds=True,
                 preexec_fn=lambda: self._setup_execution_environment(
                     umask, user, working_directory),
                 stdin=subprocess.PIPE,

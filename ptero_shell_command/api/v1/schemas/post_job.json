@@ -23,7 +23,7 @@
         "commandLine": {
             "type": "array",
             "description": "TODO what happens when passing empty strings to commandLine/exec?",
-            "items": { "type": "string" },
+            "items": { "type": ["string", "number"] },
             "minItems": 1
         },
         "environment": {
