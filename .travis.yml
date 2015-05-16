@@ -8,7 +8,7 @@ env:
         - PTERO_SHELL_COMMAND_TEST_PROCFILE=tests/scripts/Procfile
         - PTERO_SHELL_COMMAND_TEST_PROCFILE=tests/scripts/Procfile-with-sudo
 
-install: pip install tox==1.9.0
+install: pip install tox
 
 before_script: sudo update-alternatives --install /bin/sh sh /bin/bash 100
 

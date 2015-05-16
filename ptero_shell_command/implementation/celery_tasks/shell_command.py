@@ -93,7 +93,7 @@ class ShellCommandTask(celery.Task):
                 urls = [urls]
 
             for url in urls:
-                task.delay('PUT', url, **kwargs)
+                task.delay('POST', url, **kwargs)
 
     def _get_http_task(self):
         return celery.current_app.tasks[
