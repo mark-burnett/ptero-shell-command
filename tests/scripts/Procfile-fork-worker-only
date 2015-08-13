@@ -1,1 +1,1 @@
-worker: CELERYD_PREFETCH_MULTIPLIER=1 CELERY_BROKER_URL=$PTERO_SHELL_COMMAND_CELERY_BROKER_URL CELERY_RESULT_BACKEND=$PTERO_SHELL_COMMAND_CELERY_RESULT_BACKEND coverage run $(which celery) worker -n shell_worker.%h.$PORT --pool=eventlet --concurrency 1 -A ptero_shell_command.implementation.celery_app -Q fork
+worker: coverage run $(which celery) worker -n shell_worker.%h.$PORT --pool=eventlet --concurrency 1 -A ptero_shell_command.implementation.celery_app -Q fork
