@@ -1,5 +1,5 @@
 rabbit: RABBITMQ_LOG_BASE=$PWD/$PTERO_SHELL_COMMAND_RABBITMQ_LOG_BASE RABBITMQ_MNESIA_BASE=$PWD/$PTERO_SHELL_COMMAND_RABBITMQ_MNESIA_BASE RABBITMQ_NODENAME=$PTERO_SHELL_COMMAND_RABBITMQ_NODENAME RABBITMQ_NODE_PORT=$PTERO_SHELL_COMMAND_RABBITMQ_NODE_PORT rabbitmq-server
 redis: redis-server --port $PTERO_SHELL_COMMAND_REDIS_PORT
 web: tests/scripts/sigterm_wrapper coverage run ptero_shell_command/api/wsgi.py
-worker: sudo $(which coverage) run $(which celery) worker -n shell_worker.%h.$PORT --pool=eventlet --concurrency 1 -A ptero_shell_command.implementation.celery_app -Q fork
+worker: sudo -E $(which coverage) run $(which celery) worker -n shell_worker.%h.$PORT --pool=eventlet --concurrency 1 -A ptero_shell_command.implementation.celery_app -Q fork
 http_worker: coverage run $(which celery) worker -n shell_worker.%h.$PORT --pool=eventlet --concurrency 1 -A ptero_shell_command.implementation.celery_app -Q http
