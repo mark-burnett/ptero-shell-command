@@ -100,8 +100,21 @@ class ShellCommandTask(celery.Task):
             'ptero_common.celery.http.HTTP'
         ]
 
+    @property
+    def user(self):
+        return pwd.getpwuid(os.getuid())[0]
+
     def _setup_execution_environment(self, umask, user, working_directory):
-        self._set_uid(user)
+        pw_ent = self._get_pw_ent(user)
+
+        if self.user == 'root':
+            self._set_groups(user, pw_ent.pw_gid)
+            self._set_gid(pw_ent.pw_gid)
+            self._set_uid(pw_ent.pw_uid)
+        elif self.user != user:
+            raise PreExecFailed("Attempted submit job as invalid user (%s),"
+                    " only valid value is (%s)" % (user, self.user))
+
         self._set_umask(umask)
         self._set_working_directory(working_directory)
 
@@ -112,14 +125,28 @@ class ShellCommandTask(celery.Task):
             except TypeError as e:
                 raise PreExecFailed('Failed to set umask: ' + e.message)
 
-    def _set_uid(self, user):
+    def _get_pw_ent(self, user):
         try:
             pw_ent = pwd.getpwnam(user)
         except KeyError as e:
             raise PreExecFailed(e.message)
+        return pw_ent
 
+    def _set_groups(self, user, gid):
         try:
-            os.setreuid(pw_ent.pw_uid, pw_ent.pw_uid)
+            os.initgroups(user, gid)
+        except OSError as e:
+            raise PreExecFailed('Failed to initgroups: ' + e.strerror)
+
+    def _set_gid(self, gid):
+        try:
+            os.setregid(gid, gid)
+        except OSError as e:
+            raise PreExecFailed('Failed to setregid: ' + e.strerror)
+
+    def _set_uid(self, uid):
+        try:
+            os.setreuid(uid, uid)
         except OSError as e:
             raise PreExecFailed('Failed to setreuid: ' + e.strerror)
 

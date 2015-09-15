@@ -1,4 +1,5 @@
 from .base import BaseAPITest
+import pwd
 import os
 import re
 import unittest
@@ -61,6 +62,7 @@ class TestDropPermissions(BaseAPITest):
         webhook_target = self.create_webhook_server([200])
 
         user = 'nobody'
+        test_user = pwd.getpwuid(os.getuid())[0]
         post_response = self.post(self.jobs_url, {
             'commandLine': ['whoami'],
             'user': user,
@@ -75,7 +77,8 @@ class TestDropPermissions(BaseAPITest):
             {
                 'status': statuses.errored,
                 'jobId': post_response.DATA['jobId'],
-                'errorMessage': 'Failed to setreuid: Operation not permitted'
+                'errorMessage': 'Attempted submit job as invalid user (%s), '
+                                'only valid value is (%s)' % (user, test_user)
             }
         ]
         self.assertEqual(expected_data, webhook_data)
