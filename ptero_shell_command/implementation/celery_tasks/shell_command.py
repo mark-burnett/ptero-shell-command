@@ -100,11 +100,20 @@ class ShellCommandTask(celery.Task):
             'ptero_common.celery.http.HTTP'
         ]
 
+    @property
+    def user(self):
+        return pwd.getpwuid(os.getuid())[0]
+
     def _setup_execution_environment(self, umask, user, working_directory):
         pw_ent = self._get_pw_ent(user)
-        self._set_groups(user, pw_ent.pw_gid)
-        self._set_gid(pw_ent.pw_gid)
-        self._set_uid(pw_ent.pw_uid)
+
+        if self.user == 'root':
+            self._set_groups(user, pw_ent.pw_gid)
+            self._set_gid(pw_ent.pw_gid)
+            self._set_uid(pw_ent.pw_uid)
+        elif self.user != user:
+            raise PreExecFailed("Attempted submit job as invalid user (%s),"
+                    " only valid value is (%s)" % (user, self.user))
 
         self._set_umask(umask)
         self._set_working_directory(working_directory)
