@@ -1,11 +1,11 @@
 import celery
-import logging
+from ptero_common import nicer_logging
 import os
 import pwd
 import subprocess
 from ptero_common import statuses
 
-LOG = logging.getLogger(__name__)
+LOG = nicer_logging.getLogger(__name__)
 __all__ = ['ShellCommandTask']
 
 
@@ -24,7 +24,8 @@ class ShellCommandTask(celery.Task):
             return False
 
         try:
-            LOG.debug('command_line %s' % command_line)
+            LOG.debug('command_line: %s', command_line,
+                    extra={'jobId': self.request.id})
             p = subprocess.Popen([str(x) for x in command_line],
                 env=environment, close_fds=True,
                 preexec_fn=lambda: self._setup_execution_environment(
@@ -40,13 +41,16 @@ class ShellCommandTask(celery.Task):
             stdout_data, stderr_data = p.communicate(stdin)
 
             exit_code = p.wait()
-            LOG.debug('exit_code %d' % exit_code)
+            LOG.debug('exit_code: %s', exit_code,
+                    extra={'jobId': self.request.id})
             if exit_code == 0:
                 status = statuses.succeeded
             else:
                 status = statuses.failed
-                LOG.debug('stdout %s' % stdout_data)
-                LOG.debug('stderr %s' % stderr_data)
+                LOG.debug('stdout: %s', stdout_data,
+                    extra={'jobId': self.request.id})
+                LOG.debug('stderr: %s', stderr_data,
+                    extra={'jobId': self.request.id})
 
             webhook_data = {
                 'status': status,
@@ -64,19 +68,22 @@ class ShellCommandTask(celery.Task):
             return exit_code == 0
 
         except PreExecFailed as e:
-            LOG.warning('pre-exec failed: %s' % e.message)
+            LOG.exception('Exception during pre-exec',
+                    extra={'jobId': self.request.id})
             self.webhook(statuses.errored, webhooks, status=statuses.errored,
                          jobId=self.request.id, errorMessage=e.message)
             return False
 
         except OSError as e:
             if e.errno == 2:
-                LOG.warning('Command not found: %s' % command_line[0])
+                LOG.exception('Exception: Command not found: %s',
+                        command_line[0], extra={'jobId': self.request.id})
                 self.webhook(statuses.errored, webhooks,
                         status=statuses.errored, jobId=self.request.id,
                         errorMessage='Command not found: %s' % command_line[0])
             else:
-                LOG.warning('OSError: %s' % str(e))
+                LOG.exception('Exception: OSError',
+                    extra={'jobId': self.request.id})
                 self.webhook(statuses.errored, webhooks,
                         status=statuses.errored, jobID=self.request.id,
                         errorMessage=e.message)
@@ -93,6 +100,9 @@ class ShellCommandTask(celery.Task):
                 urls = [urls]
 
             for url in urls:
+                LOG.info('Webhook: "%s" for job %s -- %s',
+                        webhook_name, self.request.id, url,
+                        extra={'jobId': self.request.id})
                 task.delay('POST', url, **kwargs)
 
     def _get_http_task(self):
