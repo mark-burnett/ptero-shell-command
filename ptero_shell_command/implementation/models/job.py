@@ -46,9 +46,6 @@ class Job(Base):
 
     webhooks = Column(JSON, default=dict, nullable=False)
 
-    created_at = Column(DateTime(timezone=True), default=func.now(),
-                        nullable=False)
-
     stdout = Column(Text)
     stderr = Column(Text)
     exit_code = Column(Text)
