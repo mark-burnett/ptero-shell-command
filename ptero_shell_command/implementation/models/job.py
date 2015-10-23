@@ -43,6 +43,7 @@ class Job(Base):
 
     umask = Column(Integer)
     user = Column(Text, nullable=False, index=True)
+    status = Column(Text, nullable=False, index=True)
 
     webhooks = Column(JSON, default=dict, nullable=False)
 
@@ -50,13 +51,12 @@ class Job(Base):
     stderr = Column(Text)
     exit_code = Column(Text)
 
-    @property
-    def status(self):
-        statuses = self.status_history
-        if statuses:
-            return statuses[-1].status
+    def __init__(self, *args, **kwargs):
+        super(Job, self).__init__(*args, **kwargs)
+        self.set_status(statuses.new)
 
     def set_status(self, status, message=None):
+        self.status = status
         JobStatusHistory(job=self, status=status, message=message)
 
     def trigger_webhook(self, new_status):
