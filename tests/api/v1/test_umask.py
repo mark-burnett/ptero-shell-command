@@ -3,10 +3,10 @@ from .base import BaseAPITest
 
 class TestUmask(BaseAPITest):
     def test_umask_0000_set_for_job(self):
-        _test_umask_set_for_job(self, 0000)
+        _test_umask_set_for_job(self, "0000")
 
     def test_umask_0777_set_for_job(self):
-        _test_umask_set_for_job(self, 0777)
+        _test_umask_set_for_job(self, "0777")
 
 
 def _test_umask_set_for_job(self, umask):
@@ -26,4 +26,4 @@ def _test_umask_set_for_job(self, umask):
 
     webhook_data = webhook_target.stop()
     actual_umask = webhook_data[0]['stdout'].strip('\n')
-    self.assertEqual(oct(umask).zfill(4), actual_umask)
+    self.assertEqual(umask, actual_umask)

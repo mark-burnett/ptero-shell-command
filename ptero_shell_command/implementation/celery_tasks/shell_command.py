@@ -17,6 +17,9 @@ class ShellCommandTask(celery.Task):
     def run(self, command_line, umask, user, working_directory,
             environment=None, stdin=None, webhooks=None):
 
+        if umask is not None:
+            umask = int(umask, 8)
+
         if user == 'root':
             self.webhook(statuses.errored, webhooks, status=statuses.errored,
                     jobId=self.request.id,
