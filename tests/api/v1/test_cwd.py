@@ -1,6 +1,9 @@
 from .base import BaseAPITest
 import os
 from ptero_common import statuses
+import logging
+
+LOG = logging.getLogger(__name__)
 
 
 class TestCwd(BaseAPITest):
@@ -36,15 +39,11 @@ class TestCwd(BaseAPITest):
 
         post_response = self.post(self.jobs_url, post_data)
         webhook_data = webhook_target.stop()
-        expected_data = [
-            {
-                'status': statuses.errored,
-                'jobId': post_response.DATA['jobId'],
-                'errorMessage': 'chdir(/does/not/exist): '
-                                'No such file or directory'
-            },
-        ]
-        self.assertEqual(webhook_data, expected_data)
+        self.assertEqual(post_response.status_code, 201)
+
+        self.assertEqual(webhook_data[0]['status'], statuses.errored)
+        self.assertTrue(webhook_data[0]['statusHistory'][-1][
+            'message'].endswith('No such file or directory'))
 
     def test_job_working_directory_access_denied(self):
         webhook_target = self.create_webhook_server([200])
@@ -61,12 +60,8 @@ class TestCwd(BaseAPITest):
 
         post_response = self.post(self.jobs_url, post_data)
         webhook_data = webhook_target.stop()
-        expected_data = [
-            {
-                'status': statuses.errored,
-                'jobId': post_response.DATA['jobId'],
-                'errorMessage': 'chdir(%s): Permission denied' %
-                                self.job_working_directory
-            },
-        ]
-        self.assertEqual(webhook_data, expected_data)
+        self.assertEqual(post_response.status_code, 201)
+
+        self.assertEqual(webhook_data[0]['status'], statuses.errored)
+        self.assertTrue(webhook_data[0]['statusHistory'][-1][
+            'message'].endswith('Permission denied'))

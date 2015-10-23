@@ -2,12 +2,18 @@
 
 from ptero_common.janitors.redis_janitor import RedisJanitor
 from ptero_common.janitors.rabbitmq_janitor import RabbitMQJanitor
+from ptero_common.janitors.postgres_janitor import PostgresJanitor
 from ptero_common.janitors import perform_cleanup
 import os
 
 
 if __name__ == '__main__':
     perform_cleanup(janitor_spec={
+        'postgres': {
+            'required_envvars': ['PTERO_SHELL_COMMAND_DB_STRING'],
+            'cleanup_action': lambda: PostgresJanitor(
+                os.environ['PTERO_SHELL_COMMAND_DB_STRING']).clean(),
+            },
         'rabbitmq': {
             'required_envvars': ['PTERO_SHELL_COMMAND_CELERY_BROKER_URL'],
             'cleanup_action': lambda: RabbitMQJanitor(

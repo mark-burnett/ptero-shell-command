@@ -14,11 +14,11 @@ class JobListView(Resource):
     def post(self):
         try:
             data = validators.get_job_post_data()
-            job_id = g.backend.create_job(**data)
+            job_id, job_dict = g.backend.create_job(**data)
             LOG.info("Responding 201 to POST from %s and created job %s",
                     request.access_route[0], job_id,
                     extra={'jobId': job_id})
-            return ({'jobId': job_id}, 201,
+            return (job_dict, 201,
                     {'Location': url_for('job', pk=job_id, _external=True)})
         except ValidationError as e:
             LOG.exception("JSON body does not pass validation")
@@ -29,8 +29,8 @@ class JobListView(Resource):
 class JobView(Resource):
     @logged_response(logger=LOG)
     def get(self, pk):
-        status = g.backend.get_job_status(pk)
-        if status is not None:
-            return {'status': status}
+        result = g.backend.get_job(pk)
+        if result is not None:
+            return result[1], 200
         else:
-            return {'message': 'Job not found.'}, 404
+            return {'error': 'Job (%s) not found.' % pk}, 404
