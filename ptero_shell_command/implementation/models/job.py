@@ -90,6 +90,7 @@ class Job(Base):
             'stdin': self.stdin,
             'stderr': self.stderr,
             'stdout': self.stdout,
+            'umask': self.umask,
             'user': self.user,
             'webhooks': self.webhooks,
             'workingDirectory': self.working_directory,
