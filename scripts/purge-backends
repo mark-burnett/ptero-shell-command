@@ -9,13 +9,13 @@ import os
 if __name__ == '__main__':
     perform_cleanup(janitor_spec={
         'rabbitmq': {
-            'required_envvars': ['PTERO_WORKFLOW_CELERY_BROKER_URL'],
+            'required_envvars': ['PTERO_SHELL_COMMAND_CELERY_BROKER_URL'],
             'cleanup_action': lambda: RabbitMQJanitor(
-                os.environ['PTERO_WORKFLOW_CELERY_BROKER_URL']).clean(),
+                os.environ['PTERO_SHELL_COMMAND_CELERY_BROKER_URL']).clean(),
             },
         'redis': {
-            'required_envvars': ['PTERO_WORKFLOW_CELERY_RESULT_BACKEND'],
+            'required_envvars': ['PTERO_SHELL_COMMAND_CELERY_RESULT_BACKEND'],
             'cleanup_action': lambda: RedisJanitor(
-                os.environ['PTERO_WORKFLOW_CELERY_RESULT_BACKEND']).clean(),
+                os.environ['PTERO_SHELL_COMMAND_CELERY_RESULT_BACKEND']).clean(),
             },
         })
