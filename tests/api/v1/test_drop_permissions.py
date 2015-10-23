@@ -22,6 +22,7 @@ class TestDropPermissions(BaseAPITest):
                 statuses.errored: webhook_target.url,
             },
         })
+        print "job_id: %s" % post_response.DATA['jobId']
 
         webhook_data = webhook_target.stop()
         expected_data = [
@@ -40,7 +41,7 @@ class TestDropPermissions(BaseAPITest):
         user = 'nobody'
         primarygroup = 'nobody'
         os.chmod(self.job_working_directory, 0777)
-        self.post(self.jobs_url, {
+        post_response = self.post(self.jobs_url, {
             'commandLine': ['id'],
             'user': user,
             'workingDirectory': self.job_working_directory,
@@ -48,6 +49,7 @@ class TestDropPermissions(BaseAPITest):
                 'ended': webhook_target.url,
             },
         })
+        print "job_id: %s" % post_response.DATA['jobId']
 
         webhook_data = webhook_target.stop()
         id_result = webhook_data[0]['stdout']
@@ -71,6 +73,7 @@ class TestDropPermissions(BaseAPITest):
                 statuses.errored: webhook_target.url,
             },
         })
+        print "job_id: %s" % post_response.DATA['jobId']
 
         webhook_data = webhook_target.stop()
         expected_data = [
@@ -95,6 +98,7 @@ class TestDropPermissions(BaseAPITest):
                 statuses.errored: webhook_target.url,
             },
         })
+        print "job_id: %s" % post_response.DATA['jobId']
 
         webhook_data = webhook_target.stop()
         expected_data = [

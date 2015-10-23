@@ -14,6 +14,7 @@ class TestWebhooks(BaseAPITest):
                 statuses.running: webhook_target.url,
             },
         })
+        print "job_id: %s" % post_response.DATA['jobId']
 
         webhook_data = webhook_target.stop()
         expected_data = [
@@ -35,6 +36,7 @@ class TestWebhooks(BaseAPITest):
                 'ended': webhook_target.url,
             },
         })
+        print "job_id: %s" % post_response.DATA['jobId']
 
         webhook_data = webhook_target.stop()
         expected_data = [
@@ -59,6 +61,7 @@ class TestWebhooks(BaseAPITest):
                 'ended': webhook_target.url,
             },
         })
+        print "job_id: %s" % post_response.DATA['jobId']
 
         webhook_data = webhook_target.stop()
         expected_data = [
@@ -84,6 +87,7 @@ class TestWebhooks(BaseAPITest):
                 statuses.failed: webhook_target.url,
             },
         })
+        print "job_id: %s" % post_response.DATA['jobId']
 
         webhook_data = webhook_target.stop()
         expected_data = [
@@ -109,6 +113,7 @@ class TestWebhooks(BaseAPITest):
                 statuses.failed: webhook_target.url,
             },
         })
+        print "job_id: %s" % post_response.DATA['jobId']
 
         webhook_data = webhook_target.stop()
         expected_data = [
@@ -134,6 +139,7 @@ class TestWebhooks(BaseAPITest):
                 'ended': webhook_target.url,
             },
         })
+        print "job_id: %s" % post_response.DATA['jobId']
 
         webhook_data = webhook_target.stop()
         expected_data = [
@@ -162,6 +168,7 @@ class TestWebhooks(BaseAPITest):
                 statuses.running: [webhook_target.url, webhook_target.url]
             },
         })
+        print "job_id: %s" % post_response.DATA['jobId']
 
         webhook_data = webhook_target.stop()
         expected_data = [
@@ -192,7 +199,8 @@ class TestWebhooks(BaseAPITest):
             },
         }
 
-        self.post(self.jobs_url, post_data)
+        post_response = self.post(self.jobs_url, post_data)
+        print "job_id: %s" % post_response.DATA['jobId']
 
         webhook_data = webhook_target.stop()
 
@@ -215,7 +223,8 @@ class TestWebhooks(BaseAPITest):
             },
         }
 
-        self.post(self.jobs_url, post_data)
+        post_response = self.post(self.jobs_url, post_data)
+        print "job_id: %s" % post_response.DATA['jobId']
 
         webhook_data = webhook_target.stop()
         self.assertEqual(stdin, webhook_data[0]['stdout'])
@@ -231,6 +240,7 @@ class TestWebhooks(BaseAPITest):
                 statuses.errored: webhook_target.url,
             },
         })
+        print "job_id: %s" % post_response.DATA['jobId']
 
         webhook_data = webhook_target.stop()
         expected_data = [
