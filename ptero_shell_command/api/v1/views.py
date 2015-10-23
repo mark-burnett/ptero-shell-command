@@ -19,7 +19,7 @@ class JobListView(Resource):
                     request.access_route[0], job_id,
                     extra={'jobId': job_id})
             return ({'jobId': job_id}, 201,
-                    {'Location': url_for('job', pk=job_id)})
+                    {'Location': url_for('job', pk=job_id, _external=True)})
         except ValidationError as e:
             LOG.exception("JSON body does not pass validation")
             LOG.info("Responding 400 to POST from %s", request.access_route[0])
