@@ -1,7 +1,6 @@
 from . import celery_tasks  # noqa
 from . import models
 from .models.job import PreExecFailed
-import uuid
 from ptero_common import nicer_logging, statuses
 import subprocess
 
@@ -24,8 +23,8 @@ class Backend(object):
             'ShellCommandTask'
         ]
 
-    def create_job(self, command_line, user, working_directory, **kwargs):
-        job_id = str(uuid.uuid4())
+    def create_job(self, job_id, command_line, user, working_directory,
+            **kwargs):
 
         if 'umask' in kwargs:
             kwargs['umask'] = int(kwargs['umask'], 8)
@@ -48,7 +47,7 @@ class Backend(object):
                 job.id, extra={'jobId': job.id})
         self.shell_command.delay(job.id)
 
-        return job.id, job.as_dict
+        return job.as_dict
 
     def run_job(self, job_id):
         job = self._get_job(job_id)
