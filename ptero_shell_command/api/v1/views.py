@@ -39,7 +39,7 @@ def _submit_job(job_id):
                 request.access_route[0], job_id,
                 extra={'jobId': job_id})
         return (job_dict, 201,
-                {'Location': url_for('job', pk=job_id, _external=True)})
+                {'Location': url_for('.job', pk=job_id, _external=True)})
     except ValidationError as e:
         LOG.exception("JSON body does not pass validation")
         LOG.info("Responding 400 to POST from %s", request.access_route[0])
