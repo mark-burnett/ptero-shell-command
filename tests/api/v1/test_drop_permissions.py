@@ -1,5 +1,4 @@
 from .base import BaseAPITest
-import pwd
 import os
 import re
 import unittest
@@ -22,16 +21,14 @@ class TestDropPermissions(BaseAPITest):
                 statuses.errored: webhook_target.url,
             },
         })
+        print "job_id: %s" % post_response.DATA['jobId']
 
         webhook_data = webhook_target.stop()
-        expected_data = [
-            {
-                'status': statuses.errored,
-                'jobId': post_response.DATA['jobId'],
-                'errorMessage': 'Refusing to execute job as root user'
-            },
-        ]
-        self.assertEqual(expected_data, webhook_data)
+
+        self.assertEqual(post_response.status_code, 201)
+        self.assertEqual(webhook_data[0]['status'], statuses.errored)
+        self.assertTrue(webhook_data[0]['statusHistory'][-1][
+            'message'].startswith('Refusing to execute job as root user'))
 
     @unittest.skipIf(not TEST_WITH_ROOT, "not running fork worker as root")
     def test_job_user_and_group(self):
@@ -40,7 +37,7 @@ class TestDropPermissions(BaseAPITest):
         user = 'nobody'
         primarygroup = 'nobody'
         os.chmod(self.job_working_directory, 0777)
-        self.post(self.jobs_url, {
+        post_response = self.post(self.jobs_url, {
             'commandLine': ['id'],
             'user': user,
             'workingDirectory': self.job_working_directory,
@@ -48,6 +45,7 @@ class TestDropPermissions(BaseAPITest):
                 'ended': webhook_target.url,
             },
         })
+        print "job_id: %s" % post_response.DATA['jobId']
 
         webhook_data = webhook_target.stop()
         id_result = webhook_data[0]['stdout']
@@ -62,7 +60,6 @@ class TestDropPermissions(BaseAPITest):
         webhook_target = self.create_webhook_server([200])
 
         user = 'nobody'
-        test_user = pwd.getpwuid(os.getuid())[0]
         post_response = self.post(self.jobs_url, {
             'commandLine': ['whoami'],
             'user': user,
@@ -71,17 +68,14 @@ class TestDropPermissions(BaseAPITest):
                 statuses.errored: webhook_target.url,
             },
         })
+        print "job_id: %s" % post_response.DATA['jobId']
 
         webhook_data = webhook_target.stop()
-        expected_data = [
-            {
-                'status': statuses.errored,
-                'jobId': post_response.DATA['jobId'],
-                'errorMessage': 'Attempted submit job as invalid user (%s), '
-                                'only valid value is (%s)' % (user, test_user)
-            }
-        ]
-        self.assertEqual(expected_data, webhook_data)
+
+        self.assertEqual(post_response.status_code, 201)
+        self.assertEqual(webhook_data[0]['status'], statuses.errored)
+        self.assertTrue(webhook_data[0]['statusHistory'][-1][
+            'message'].startswith('Attempted to submit job as invalid user'))
 
     def test_exception_on_setuid_failure(self):
         webhook_target = self.create_webhook_server([200])
@@ -95,16 +89,14 @@ class TestDropPermissions(BaseAPITest):
                 statuses.errored: webhook_target.url,
             },
         })
+        print "job_id: %s" % post_response.DATA['jobId']
 
         webhook_data = webhook_target.stop()
-        expected_data = [
-            {
-                'status': statuses.errored,
-                'jobId': post_response.DATA['jobId'],
-                'errorMessage': 'getpwnam(): name not found: _no_such_user'
-            }
-        ]
-        self.assertEqual(expected_data, webhook_data)
+
+        self.assertEqual(post_response.status_code, 201)
+        self.assertEqual(webhook_data[0]['status'], statuses.errored)
+        self.assertTrue(webhook_data[0]['statusHistory'][-1][
+            'message'].endswith('getpwnam(): name not found: _no_such_user'))
 
     def _find_match(self, regexp, target):
         match = re.search(regexp, target)

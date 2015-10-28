@@ -1,12 +1,20 @@
 from . import celery_tasks  # noqa
+from . import models
+from .models.job import PreExecFailed
+from ptero_common import nicer_logging, statuses
+import subprocess
+
+
+LOG = nicer_logging.getLogger(__name__)
 
 
 class Backend(object):
-    def __init__(self, celery_app):
+    def __init__(self, session, celery_app):
+        self.session = session
         self.celery_app = celery_app
 
     def cleanup(self):
-        pass
+        self.session.rollback()
 
     @property
     def shell_command(self):
@@ -15,33 +23,96 @@ class Backend(object):
             'ShellCommandTask'
         ]
 
-    def create_job(self, command_line, user, working_directory, umask=None,
-                   environment={}, stdin=None, webhooks=None):
-        task = self.shell_command.delay(
-            command_line, umask, user, working_directory,
-            environment=environment, stdin=stdin, webhooks=webhooks)
+    def create_job(self, job_id, command_line, user, working_directory,
+            **kwargs):
 
-        return task.id
+        if 'umask' in kwargs:
+            kwargs['umask'] = int(kwargs['umask'], 8)
 
-    def get_job_status(self, job_id):
-        task = self.shell_command.AsyncResult(job_id)
+        job = models.Job(id=job_id, command_line=command_line, user=user,
+                working_directory=working_directory, **kwargs)
+        self.session.add(job)
 
-        return _job_status_from_task(task)
+        LOG.debug("Setting status of job (%s) to 'new'", job.id,
+                extra={'jobId': job.id})
+        self._set_job_status(job, statuses.new)
 
+        LOG.debug("Commiting job (%s) to DB", job.id,
+                extra={'jobId': job.id})
+        self.session.commit()
+        LOG.debug("Job (%s) committed to DB", job.id,
+                extra={'jobId': job.id})
 
-def _job_status_from_task(task):
-    if task is None:
-        return None
+        LOG.info("Submitting Celery ShellCommandTask for job (%s)",
+                job.id, extra={'jobId': job.id})
+        self.shell_command.delay(job.id)
 
-    state = task.state
-    if state == 'SUCCESS':
-        if task.result:
-            return 'succeeded'
-        else:
-            return 'failed'
+        return job.as_dict
 
-    elif state == 'STARTED':
-        return 'running'
+    def run_job(self, job_id):
+        job = self._get_job(job_id)
 
-    elif state == 'PENDING':
-        return 'pending'
+        if job.user == 'root':
+            self._set_job_status(job, statuses.errored,
+                    message="Refusing to execute job as root user")
+            self.session.commit()
+            return
+
+        try:
+            LOG.debug('command_line: %s', job.command_line,
+                    extra={'jobId': job.id})
+            p = subprocess.Popen([str(x) for x in job.command_line],
+                env=job.environment, close_fds=True,
+                preexec_fn=job._setup_execution_environment,
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+            self._set_job_status(job, statuses.running)
+            self.session.commit()
+
+            # XXX We cannot use communicate for real, because communicate
+            # buffers the data in memory until the process ends.
+            job.stdout, job.stderr = p.communicate(job.stdin)
+
+            job.exit_code = p.wait()
+            LOG.debug('exit_code: %s', job.exit_code,
+                    extra={'jobId': job.id})
+            if job.exit_code == 0:
+                self._set_job_status(job, statuses.succeeded)
+            else:
+                self._set_job_status(job, statuses.failed)
+                LOG.debug('stdout: %s', job.stdout,
+                    extra={'jobId': job.id})
+                LOG.debug('stderr: %s', job.stderr,
+                    extra={'jobId': job.id})
+
+        except PreExecFailed as e:
+            LOG.exception('Exception during pre-exec',
+                    extra={'jobId': job.id})
+            self._set_job_status(job, statuses.errored, message=e.message)
+
+        except OSError as e:
+            if e.errno == 2:
+                LOG.exception('Exception: Command not found: %s',
+                        job.command_line[0], extra={'jobId': job.id})
+                self._set_job_status(job, statuses.errored,
+                        message='Command not found: %s' % job.command_line[0])
+            else:
+                LOG.exception('Exception: OSError',
+                    extra={'jobId': job.id})
+                self._set_job_status(job, statuses.errored, message=e.message)
+
+        self.session.commit()
+
+    def _set_job_status(self, job, status, message=None):
+        job.set_status(status, message=message)
+        self.session.commit()
+        job.trigger_webhook(status)
+
+    def _get_job(self, job_id):
+        return self.session.query(models.Job).get(job_id)
+
+    def get_job(self, job_id):
+        job = self._get_job(job_id)
+        if job:
+            return job.id, job.as_dict

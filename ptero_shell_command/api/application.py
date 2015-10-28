@@ -1,15 +1,20 @@
 from . import v1
 from ..implementation import Factory
 import flask
+import os
 
 
 __all__ = ['create_app']
 
 
-def create_app(celery_configuration=None):
-    factory = Factory(celery_configuration=celery_configuration)
+def create_app():
+    factory = Factory(os.environ['PTERO_SHELL_COMMAND_DB_STRING'])
 
     app = _create_app_from_blueprints()
+    app.config['RESTFUL_JSON'] = {
+            'indent': 4,
+            'sort_keys': True,
+    }
 
     _attach_factory_to_app(factory, app)
 

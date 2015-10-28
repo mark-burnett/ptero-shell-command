@@ -1,7 +1,9 @@
-from celery.signals import setup_logging
+from celery.signals import worker_init, setup_logging
+from .factory import Factory
 from ptero_common.logging_configuration import configure_celery_logging
 from ptero_common.celery.utils import get_config_from_env
 import celery
+import os
 
 
 TASK_PATH = 'ptero_shell_command.implementation.celery_tasks'
@@ -24,3 +26,10 @@ app.conf.update(config)
 @setup_logging.connect
 def setup_celery_logging(**kwargs):
     configure_celery_logging('SHELL_COMMAND')
+
+
+@worker_init.connect
+def initialize_sqlalchemy_session(signal, sender):
+    app.factory = Factory(
+            database_url=os.environ['PTERO_SHELL_COMMAND_DB_STRING'],
+            celery_app=app)
