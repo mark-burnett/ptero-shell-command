@@ -33,10 +33,6 @@ class Backend(object):
                 working_directory=working_directory, **kwargs)
         self.session.add(job)
 
-        LOG.debug("Setting status of job (%s) to 'new'", job.id,
-                extra={'jobId': job.id})
-        self._set_job_status(job, statuses.new)
-
         LOG.debug("Commiting job (%s) to DB", job.id,
                 extra={'jobId': job.id})
         self.session.commit()
