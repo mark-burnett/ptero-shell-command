@@ -44,3 +44,9 @@ def _submit_job(job_id):
         LOG.exception("JSON body does not pass validation")
         LOG.info("Responding 400 to POST from %s", request.access_route[0])
         return {'error': e.message}, 400
+
+
+class ServerInfo(Resource):
+    @logged_response(logger=LOG)
+    def get(self):
+        return g.backend.server_info(), 200

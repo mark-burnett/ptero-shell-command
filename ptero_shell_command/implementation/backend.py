@@ -2,6 +2,7 @@ from . import celery_tasks  # noqa
 from . import models
 from .models.job import PreExecFailed
 from ptero_common import nicer_logging, statuses
+from ptero_common.server_info import get_server_info
 import subprocess
 
 
@@ -9,9 +10,10 @@ LOG = nicer_logging.getLogger(__name__)
 
 
 class Backend(object):
-    def __init__(self, session, celery_app):
+    def __init__(self, session, celery_app, db_revision):
         self.session = session
         self.celery_app = celery_app
+        self.db_revision = db_revision
 
     def cleanup(self):
         self.session.rollback()
@@ -112,3 +114,9 @@ class Backend(object):
         job = self._get_job(job_id)
         if job:
             return job.id, job.as_dict
+
+    def server_info(self):
+        result = get_server_info(
+                'ptero_shell_command.implementation.celery_app')
+        result['databaseRevision'] = self.db_revision
+        return result
