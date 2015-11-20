@@ -1,7 +1,7 @@
 from celery.signals import worker_init, setup_logging
 from .factory import Factory
 from ptero_common.logging_configuration import configure_celery_logging
-from ptero_common.celery.utils import get_config_from_env
+from ptero_common.celery.utils import get_celery_config
 import celery
 import os
 
@@ -19,7 +19,7 @@ app.conf['CELERY_ROUTES'] = (
     },
 )
 
-config = get_config_from_env('SHELL_COMMAND')
+config = get_celery_config('SHELL_COMMAND')
 app.conf.update(config)
 
 
