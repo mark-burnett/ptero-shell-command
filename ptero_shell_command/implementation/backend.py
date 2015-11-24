@@ -59,6 +59,7 @@ class Backend(object):
         try:
             LOG.debug('command_line: %s', job.command_line,
                     extra={'jobId': job.id})
+            job_stdin = job.stdin
             p = subprocess.Popen([str(x) for x in job.command_line],
                 env=job.environment, close_fds=True,
                 preexec_fn=job._setup_execution_environment,
@@ -70,9 +71,12 @@ class Backend(object):
 
             # XXX We cannot use communicate for real, because communicate
             # buffers the data in memory until the process ends.
-            job.stdout, job.stderr = p.communicate(job.stdin)
+            job_stdout, job_stderr = p.communicate(job_stdin)
+            job_exit_code = p.wait()
 
-            job.exit_code = p.wait()
+            (job.stdout, job.stderr, job.exit_code) = (
+                job_stdout, job_stderr, job_exit_code)
+
             LOG.debug('exit_code: %s', job.exit_code,
                     extra={'jobId': job.id})
             if job.exit_code == 0:
