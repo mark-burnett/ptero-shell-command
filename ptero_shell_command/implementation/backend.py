@@ -110,7 +110,7 @@ class Backend(object):
     def _set_job_status(self, job, status, message=None):
         job.set_status(status, message=message)
         self.session.commit()
-        job.trigger_webhook(status)
+        job.trigger_webhooks()
 
     def _get_job(self, job_id):
         job = self.session.query(models.Job).get(job_id)

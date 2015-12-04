@@ -9,7 +9,8 @@ LOG = nicer_logging.getLogger(__name__)
 
 class TestCancel(BaseAPITest):
     def test_canceling_after_ended(self):
-        ended_listener = self.create_webhook_server([200])
+        succeeded_listener = self.create_webhook_server([200])
+        ended_listener = self.create_webhook_server([200, 200])
         canceled_listener = self.create_webhook_server([200])
 
         job_id = str(uuid.uuid4())
@@ -19,13 +20,14 @@ class TestCancel(BaseAPITest):
             'user': self.job_user,
             'workingDirectory': self.job_working_directory,
             'webhooks': {
+                'succeeded': succeeded_listener.url,
                 'ended': ended_listener.url,
                 'canceled': canceled_listener.url,
             },
         })
         self.assertEqual(put_response.status_code, 201)
 
-        ended_listener.stop()
+        succeeded_listener.stop()
         get_response = self.get(url)
         self.assertEqual(statuses.succeeded, get_response.DATA['status'])
 
@@ -35,3 +37,9 @@ class TestCancel(BaseAPITest):
         canceled_listener.stop()
         get_response = self.get(url)
         self.assertEqual(statuses.canceled, get_response.DATA['status'])
+
+        try:
+            ended_listener.stop()
+            self.assertFalse(True, "More than one ended callback was sent")
+        except RuntimeError:
+            self.assertTrue(True, "Only one callback was sent")
