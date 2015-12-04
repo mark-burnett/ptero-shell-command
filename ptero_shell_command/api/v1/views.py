@@ -4,6 +4,7 @@ from flask.ext.restful import Resource
 from jsonschema import ValidationError
 from ptero_common import nicer_logging
 from ptero_common.nicer_logging import logged_response
+from ptero_shell_command.exceptions import JobNotFoundError
 import uuid
 
 
@@ -20,11 +21,11 @@ class JobListView(Resource):
 class JobView(Resource):
     @logged_response(logger=LOG)
     def get(self, pk):
-        result = g.backend.get_job(pk)
-        if result is not None:
-            return result[1], 200
-        else:
-            return {'error': 'Job (%s) not found.' % pk}, 404
+        try:
+            body = g.backend.get_job(pk)
+            return body, 200
+        except JobNotFoundError as e:
+            return {"error": e.message}, 404
 
     @logged_response(logger=LOG)
     def put(self, pk):

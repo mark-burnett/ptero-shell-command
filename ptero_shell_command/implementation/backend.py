@@ -3,6 +3,7 @@ from . import models
 from .models.job import PreExecFailed
 from ptero_common import nicer_logging, statuses
 from ptero_common.server_info import get_server_info
+from ptero_shell_command.exceptions import JobNotFoundError
 import subprocess
 
 
@@ -112,12 +113,15 @@ class Backend(object):
         job.trigger_webhook(status)
 
     def _get_job(self, job_id):
-        return self.session.query(models.Job).get(job_id)
+        job = self.session.query(models.Job).get(job_id)
+        if job is not None:
+            return job
+        else:
+            raise JobNotFoundError("No job with id (%s) was found" % job_id)
 
     def get_job(self, job_id):
         job = self._get_job(job_id)
-        if job:
-            return job.id, job.as_dict
+        return job.as_dict
 
     def server_info(self):
         result = get_server_info(
