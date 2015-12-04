@@ -18,7 +18,7 @@ class PreExecFailed(Exception):
     pass
 
 
-__all__ = ['Job']
+__all__ = ['Job', 'JobStatusHistory']
 
 
 WEBHOOKS_TO_TRIGGER = {
