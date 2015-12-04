@@ -31,6 +31,31 @@ class JobView(Resource):
     def put(self, pk):
         return _submit_job(pk)
 
+    @logged_response(logger=LOG)
+    def patch(self, pk):
+        LOG.info("Handling PATCH request to %s from %s for job (%s)",
+                request.url, request.access_route[0], pk,
+                extra={'jobId': pk})
+
+        data = request.json
+        patch_keys = set(data.keys())
+        allowed_keys = set(['status'])
+
+        disallowed_keys = patch_keys - allowed_keys
+        if disallowed_keys:
+            return {"error": "Not allowing PATCH of %s" %
+                    str(list(disallowed_keys))}, 400
+
+        try:
+            job_data = g.backend.update_job(pk, **data)
+            return job_data, 200
+        except JobNotFoundError as e:
+            return {"error": e.message}, 404
+        except:
+            LOG.exception("Exception while updating job (%s)", pk,
+                    extra={'jobId': pk})
+            return {"error": "Could not update job"}, 400
+
 
 def _submit_job(job_id):
     try:

@@ -128,3 +128,10 @@ class Backend(object):
                 'ptero_shell_command.implementation.celery_app')
         result['databaseRevision'] = self.db_revision
         return result
+
+    def update_job(self, job_id, status=None):
+        job = self._get_job(job_id)
+        if status is not None:
+            self._set_job_status(job, status,
+                    message="Status set by PATCH request")
+            return job.as_dict

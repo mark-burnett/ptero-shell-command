@@ -26,6 +26,7 @@ WEBHOOKS_TO_TRIGGER = {
     statuses.errored: [statuses.errored, 'ended'],
     statuses.succeeded: [statuses.succeeded, 'ended'],
     statuses.failed: [statuses.failed, 'ended'],
+    statuses.canceled: [statuses.canceled, 'ended'],
 }
 
 
