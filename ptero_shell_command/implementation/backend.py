@@ -4,6 +4,7 @@ from .models.job import PreExecFailed
 from ptero_common import nicer_logging, statuses
 from ptero_common.server_info import get_server_info
 from ptero_shell_command.exceptions import JobNotFoundError
+import os
 import subprocess
 import time
 
@@ -61,21 +62,23 @@ class Backend(object):
         try:
             LOG.debug('command_line: %s', job.command_line,
                     extra={'jobId': job.id})
-            job_stdin = job.stdin
+
+            pipe_read, pipe_write = os.pipe()
+            if job.stdin is not None:
+                os.write(pipe_write, job.stdin)
+            os.close(pipe_write)
+
             p = subprocess.Popen([str(x) for x in job.command_line],
                 env=job.environment, close_fds=True,
                 preexec_fn=job._setup_execution_environment,
-                stdin=subprocess.PIPE,
+                stdin=pipe_read,
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
             self._set_job_status(job, statuses.running)
             self.session.commit()
 
             job_exit_code = self.wait_for_process(p, job_id)
-
-            # XXX We cannot use communicate for real, because communicate
-            # buffers the data in memory until the process ends.
-            job_stdout, job_stderr = p.communicate(job_stdin)
+            job_stdout, job_stderr = p.communicate()
 
             (job.stdout, job.stderr, job.exit_code) = (
                 job_stdout, job_stderr, job_exit_code)
