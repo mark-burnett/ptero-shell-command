@@ -119,7 +119,7 @@ class Backend(object):
         while process.poll() is None:
             LOG.debug('Polling to find out if job (%s) is canceled',
                     job_id, extra={'jobId': job_id})
-            if self.job_is_canceled(job_id):
+            if self.job_is_canceled_and_rollback(job_id):
                 LOG.info("Found job (%s) was canceled while running: "
                         "terminating child process",
                         job_id, extra={'jobId': job_id})
@@ -162,6 +162,11 @@ class Backend(object):
             self._set_job_status(job, status,
                     message="Status set by PATCH request")
             return job.as_dict
+
+    def job_is_canceled_and_rollback(self, job_id):
+        result = self.job_is_canceled(job_id)
+        self.session.rollback()
+        return result
 
     def job_is_canceled(self, job_id):
         return self.session.query(models.JobStatusHistory).filter(
