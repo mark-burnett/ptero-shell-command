@@ -28,9 +28,9 @@ class TestCancel(BaseAPITest):
     def cleanup(self):
         if os.path.exists(self.pidfile):
             # give the (hopefully canceled) job the chance to kill the process.
-            self.failed_listener.stop()
-
-            if os.path.exists(self.pidfile):
+            try:
+                self.failed_listener.stop()
+            except RuntimeError:
                 # Since this file only gets created if the process runs, and
                 # gets deleted once the process exits, its presence is an error.
                 LOG.error("Found pidfile (%s)", self.pidfile)
