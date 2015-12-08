@@ -11,6 +11,9 @@ import time
 
 LOG = nicer_logging.getLogger(__name__)
 
+POLLING_INTERVAL = int(os.environ['PTERO_SHELL_COMMAND_POLLING_INTERVAL'])
+KILL_INTERVAL = int(os.environ['PTERO_SHELL_COMMAND_KILL_INTERVAL'])
+
 
 class Backend(object):
     def __init__(self, session, celery_app, db_revision):
@@ -121,13 +124,13 @@ class Backend(object):
                         "terminating child process",
                         job_id, extra={'jobId': job_id})
                 process.terminate()
-                time.sleep(5)
+                time.sleep(KILL_INTERVAL)
                 if process.poll() is None:
                     LOG.info("Stubborn job (%s) wouldn't go down... KILLing",
                             job_id, extra={'jobId': job_id})
                     process.kill()
             else:
-                time.sleep(5)
+                time.sleep(POLLING_INTERVAL)
 
         return process.poll()
 
