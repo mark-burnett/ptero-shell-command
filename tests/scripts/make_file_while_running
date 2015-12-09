@@ -1,0 +1,26 @@
+#!/bin/bash
+
+filename=$1
+
+function finish {
+    kill -KILL $PID
+    echo "Removing file: $filename"
+    rm -rf $filename
+}
+
+trap finish EXIT
+
+if [[ -e $1 ]]; then
+    echo "Found $1 already exists... exiting."
+    exit 1
+fi
+
+echo "Running as pid: $$"
+echo "Creating file: $1"
+echo $$ > $1
+
+echo "Sleeping for $2 seconds..."
+sleep $2 &
+PID=$!
+wait $PID
+echo "Done, exiting normally"

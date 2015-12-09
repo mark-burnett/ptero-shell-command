@@ -18,7 +18,7 @@ class PreExecFailed(Exception):
     pass
 
 
-__all__ = ['Job']
+__all__ = ['Job', 'JobStatusHistory']
 
 
 WEBHOOKS_TO_TRIGGER = {
@@ -26,6 +26,7 @@ WEBHOOKS_TO_TRIGGER = {
     statuses.errored: [statuses.errored, 'ended'],
     statuses.succeeded: [statuses.succeeded, 'ended'],
     statuses.failed: [statuses.failed, 'ended'],
+    statuses.canceled: [statuses.canceled, 'ended'],
 }
 
 
@@ -59,18 +60,28 @@ class Job(Base):
         self.status = status
         JobStatusHistory(job=self, status=status, message=message)
 
-    def trigger_webhook(self, new_status):
-        webhooks = WEBHOOKS_TO_TRIGGER.get(new_status, [])
-        for webhook_name in webhooks:
-            urls = self.webhooks.get(webhook_name, [])
-            if not isinstance(urls, list):
-                urls = [urls]
+    def trigger_webhooks(self):
+        self._trigger_webhooks(self.status)
+        if self.should_send_ended_webhook():
+            self._trigger_webhooks('ended')
 
-            for url in urls:
-                LOG.info('Webhook: "%s" for job %s -- %s',
-                        webhook_name, self.id, url,
-                        extra={'jobId': self.id})
-                self.http_task.delay('POST', url, **self.as_dict)
+    def _trigger_webhooks(self, webhook_name):
+        urls = self.webhooks.get(webhook_name, [])
+        if not isinstance(urls, list):
+            urls = [urls]
+
+        for url in urls:
+            LOG.info('Webhook: "%s" for job %s -- %s',
+                    webhook_name, self.id, url,
+                    extra={'jobId': self.id})
+            self.http_task.delay('POST', url, **self.as_dict)
+
+    def should_send_ended_webhook(self):
+        num_endings = 0
+        for status_entry in self.status_history:
+            if 'ended' in WEBHOOKS_TO_TRIGGER.get(status_entry.status, []):
+                num_endings += 1
+        return num_endings == 1
 
     @property
     def http_task(self):

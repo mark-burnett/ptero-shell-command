@@ -3,10 +3,16 @@ from . import models
 from .models.job import PreExecFailed
 from ptero_common import nicer_logging, statuses
 from ptero_common.server_info import get_server_info
+from ptero_shell_command.exceptions import JobNotFoundError
+import os
 import subprocess
+import time
 
 
 LOG = nicer_logging.getLogger(__name__)
+
+POLLING_INTERVAL = int(os.environ['PTERO_SHELL_COMMAND_POLLING_INTERVAL'])
+KILL_INTERVAL = int(os.environ['PTERO_SHELL_COMMAND_KILL_INTERVAL'])
 
 
 class Backend(object):
@@ -59,20 +65,23 @@ class Backend(object):
         try:
             LOG.debug('command_line: %s', job.command_line,
                     extra={'jobId': job.id})
-            job_stdin = job.stdin
+
+            pipe_read, pipe_write = os.pipe()
+            if job.stdin is not None:
+                os.write(pipe_write, job.stdin)
+            os.close(pipe_write)
+
             p = subprocess.Popen([str(x) for x in job.command_line],
                 env=job.environment, close_fds=True,
                 preexec_fn=job._setup_execution_environment,
-                stdin=subprocess.PIPE,
+                stdin=pipe_read,
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
             self._set_job_status(job, statuses.running)
             self.session.commit()
 
-            # XXX We cannot use communicate for real, because communicate
-            # buffers the data in memory until the process ends.
-            job_stdout, job_stderr = p.communicate(job_stdin)
-            job_exit_code = p.wait()
+            job_exit_code = self.wait_for_process(p, job_id)
+            job_stdout, job_stderr = p.communicate()
 
             (job.stdout, job.stderr, job.exit_code) = (
                 job_stdout, job_stderr, job_exit_code)
@@ -106,21 +115,60 @@ class Backend(object):
 
         self.session.commit()
 
+    def wait_for_process(self, process, job_id):
+        while process.poll() is None:
+            LOG.debug('Polling to find out if job (%s) is canceled',
+                    job_id, extra={'jobId': job_id})
+            if self.job_is_canceled_and_rollback(job_id):
+                LOG.info("Found job (%s) was canceled while running: "
+                        "terminating child process",
+                        job_id, extra={'jobId': job_id})
+                process.terminate()
+                time.sleep(KILL_INTERVAL)
+                if process.poll() is None:
+                    LOG.info("Stubborn job (%s) wouldn't go down... KILLing",
+                            job_id, extra={'jobId': job_id})
+                    process.kill()
+            else:
+                time.sleep(POLLING_INTERVAL)
+
+        return process.poll()
+
     def _set_job_status(self, job, status, message=None):
         job.set_status(status, message=message)
         self.session.commit()
-        job.trigger_webhook(status)
+        job.trigger_webhooks()
 
     def _get_job(self, job_id):
-        return self.session.query(models.Job).get(job_id)
+        job = self.session.query(models.Job).get(job_id)
+        if job is not None:
+            return job
+        else:
+            raise JobNotFoundError("No job with id (%s) was found" % job_id)
 
     def get_job(self, job_id):
         job = self._get_job(job_id)
-        if job:
-            return job.id, job.as_dict
+        return job.as_dict
 
     def server_info(self):
         result = get_server_info(
                 'ptero_shell_command.implementation.celery_app')
         result['databaseRevision'] = self.db_revision
         return result
+
+    def update_job(self, job_id, status=None):
+        job = self._get_job(job_id)
+        if status is not None:
+            self._set_job_status(job, status,
+                    message="Status set by PATCH request")
+            return job.as_dict
+
+    def job_is_canceled_and_rollback(self, job_id):
+        result = self.job_is_canceled(job_id)
+        self.session.rollback()
+        return result
+
+    def job_is_canceled(self, job_id):
+        return self.session.query(models.JobStatusHistory).filter(
+                models.JobStatusHistory.job_id == job_id).filter(
+                models.JobStatusHistory.status == statuses.canceled).count() > 0
