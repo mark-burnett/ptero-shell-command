@@ -100,7 +100,7 @@ class Backend(object):
         except PreExecFailed as e:
             LOG.exception('Exception during pre-exec',
                     extra={'jobId': job.id})
-            self._set_job_status(job, statuses.errored, message=e.message)
+            self._set_job_status(job, statuses.errored, message=str(e))
 
         except OSError as e:
             if e.errno == 2:
@@ -111,7 +111,7 @@ class Backend(object):
             else:
                 LOG.exception('Exception: OSError',
                     extra={'jobId': job.id})
-                self._set_job_status(job, statuses.errored, message=e.message)
+                self._set_job_status(job, statuses.errored, message=str(e))
 
         self.session.commit()
 
