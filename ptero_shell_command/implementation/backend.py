@@ -62,32 +62,13 @@ class Backend(object):
             self.session.commit()
             return
 
+        LOG.debug('command_line: %s', job.command_line,
+                extra={'jobId': job.id})
         try:
-            LOG.debug('command_line: %s', job.command_line,
-                    extra={'jobId': job.id})
 
-            pipe_read, pipe_write = os.pipe()
-            if job.stdin is not None:
-                os.write(pipe_write, job.stdin)
-            os.close(pipe_write)
+            job.stdout, job.stderr, job.exit_code = self._launch_process(job)
 
-            p = subprocess.Popen([str(x) for x in job.command_line],
-                env=job.environment, close_fds=True,
-                preexec_fn=job._setup_execution_environment,
-                stdin=pipe_read,
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-            self._set_job_status(job, statuses.running)
-            self.session.commit()
-
-            job_exit_code = self.wait_for_process(p, job_id)
-            job_stdout, job_stderr = p.communicate()
-
-            (job.stdout, job.stderr, job.exit_code) = (
-                job_stdout, job_stderr, job_exit_code)
-
-            LOG.debug('exit_code: %s', job.exit_code,
-                    extra={'jobId': job.id})
+            LOG.debug('exit_code: %s', job.exit_code, extra={'jobId': job.id})
             if job.exit_code == 0:
                 self._set_job_status(job, statuses.succeeded)
             else:
@@ -115,7 +96,32 @@ class Backend(object):
 
         self.session.commit()
 
-    def wait_for_process(self, process, job_id):
+    def _launch_process(self, job):
+        if job.stdin is not None:
+            pipe_read, pipe_write = os.pipe()
+            os.write(pipe_write, job.stdin)
+            os.close(pipe_write)
+            stdin = pipe_read
+        else:
+            stdin = None
+
+        p = subprocess.Popen([str(x) for x in job.command_line],
+            env=job.environment, close_fds=True,
+            preexec_fn=job._setup_execution_environment,
+            stdin=stdin,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        self._set_job_status(job, statuses.running)
+        self.session.commit()
+
+        job_exit_code = self._wait_for_process(p, job.id)
+        job_stdout, job_stderr = p.communicate()
+        if stdin is not None:
+            os.close(stdin)
+
+        return job_stdout, job_stderr, job_exit_code
+
+    def _wait_for_process(self, process, job_id):
         while process.poll() is None:
             LOG.debug('Polling to find out if job (%s) is canceled',
                     job_id, extra={'jobId': job_id})
