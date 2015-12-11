@@ -11,8 +11,14 @@ import time
 
 LOG = nicer_logging.getLogger(__name__)
 
-POLLING_INTERVAL = int(os.environ['PTERO_SHELL_COMMAND_POLLING_INTERVAL'])
-KILL_INTERVAL = int(os.environ['PTERO_SHELL_COMMAND_KILL_INTERVAL'])
+CHILD_POLLING_INTERVAL = float(os.environ[
+        'PTERO_SHELL_COMMAND_CHILD_POLLING_INTERVAL'])
+DB_POLLING_INTERVAL = float(os.environ[
+        'PTERO_SHELL_COMMAND_DB_POLLING_INTERVAL'])
+KILL_INTERVAL = float(os.environ['PTERO_SHELL_COMMAND_KILL_INTERVAL'])
+
+NUM_POLLS_DB = int(DB_POLLING_INTERVAL / CHILD_POLLING_INTERVAL)
+NUM_POLLS_KILL = int(KILL_INTERVAL / CHILD_POLLING_INTERVAL)
 
 
 class Backend(object):
@@ -129,16 +135,28 @@ class Backend(object):
                 LOG.info("Found job (%s) was canceled while running: "
                         "terminating child process",
                         job_id, extra={'jobId': job_id})
-                process.terminate()
-                time.sleep(KILL_INTERVAL)
-                if process.poll() is None:
-                    LOG.info("Stubborn job (%s) wouldn't go down... KILLing",
-                            job_id, extra={'jobId': job_id})
-                    process.kill()
+                self._kill_process(process, job_id)
             else:
-                time.sleep(POLLING_INTERVAL)
+                self._busy_wait(process, num_polls=NUM_POLLS_DB)
 
         return process.poll()
+
+    def _busy_wait(self, process, num_polls):
+        for i in xrange(num_polls):
+            if process.poll() is not None:
+                return
+            else:
+                time.sleep(CHILD_POLLING_INTERVAL)
+        return
+
+    def _kill_process(self, process, job_id):
+        process.terminate()
+        self._busy_wait(process, num_polls=NUM_POLLS_KILL)
+        if process.poll() is None:
+            LOG.info("Stubborn job (%s) wouldn't go down... KILLing", job_id,
+                    extra={'jobId': job_id})
+            process.kill()
+            process.wait()
 
     def _set_job_status(self, job, status, message=None):
         job.set_status(status, message=message)
