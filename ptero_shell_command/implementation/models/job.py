@@ -52,6 +52,8 @@ class Job(Base):
     stderr = Column(Text)
     exit_code = Column(Text)
 
+    retry_settings = Column(JSON, nullable=True)
+
     def __init__(self, *args, **kwargs):
         super(Job, self).__init__(*args, **kwargs)
         self.set_status(statuses.new)
@@ -91,7 +93,7 @@ class Job(Base):
 
     @property
     def as_dict(self):
-        return {
+        result = {
             'commandLine': self.command_line,
             'environment': self.environment,
             'exitCode': self.exit_code,
@@ -106,6 +108,11 @@ class Job(Base):
             'webhooks': self.webhooks,
             'workingDirectory': self.working_directory,
         }
+
+        if self.retry_settings is not None:
+            result['retrySettings'] = self.retry_settings
+
+        return result
 
     def _setup_execution_environment(self):
         pw_ent = self._get_pw_ent()
@@ -165,6 +172,18 @@ class Job(Base):
             raise PreExecFailed(
                 'Failed to chdir(%s): %s' %
                 (self.working_directory, e.strerror))
+
+    def should_retry(self, exit_code, attempt_number):
+        if self.retry_settings is None:
+            return False
+        else:
+            return (self.retry_settings['exitCode'] == exit_code and
+                    self.retry_settings['attempts'] > attempt_number)
+
+    def retry_delay(self, attempt_number):
+        multiplier = 2 ** attempt_number
+        return min(self.retry_settings['maxInterval'],
+                multiplier * self.retry_settings['initialInterval'])
 
 
 class JobStatusHistory(Base):

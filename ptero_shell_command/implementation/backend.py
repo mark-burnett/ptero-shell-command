@@ -3,7 +3,7 @@ from . import models
 from .models.job import PreExecFailed
 from ptero_common import nicer_logging, statuses
 from ptero_common.server_info import get_server_info
-from ptero_shell_command.exceptions import JobNotFoundError
+from ptero_shell_command.exceptions import JobNotFoundError, RetryJobError
 import os
 import subprocess
 import time
@@ -59,7 +59,7 @@ class Backend(object):
 
         return job.as_dict
 
-    def run_job(self, job_id):
+    def run_job(self, job_id, attempt_number):
         job = self._get_job(job_id)
 
         if job.user == 'root':
@@ -75,6 +75,13 @@ class Backend(object):
             job.stdout, job.stderr, job.exit_code = self._launch_process(job)
 
             LOG.debug('exit_code: %s', job.exit_code, extra={'jobId': job.id})
+            if job.should_retry(job.exit_code, attempt_number):
+                exit_code = job.exit_code
+                self.session.rollback()
+                raise RetryJobError("Job (%s) should be retried after "
+                    "exiting (%s) on attempt number (%s)" % (job.id, exit_code,
+                        attempt_number))
+
             if job.exit_code == 0:
                 self._set_job_status(job, statuses.succeeded)
             else:
@@ -196,3 +203,7 @@ class Backend(object):
         return self.session.query(models.JobStatusHistory).filter(
                 models.JobStatusHistory.job_id == job_id).filter(
                 models.JobStatusHistory.status == statuses.canceled).count() > 0
+
+    def get_retry_delay(self, job_id, attempt_number):
+        job = self._get_job(job_id)
+        return job.retry_delay(attempt_number)
