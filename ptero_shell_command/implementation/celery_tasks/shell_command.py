@@ -13,6 +13,8 @@ class PreExecFailed(Exception):
 
 
 class ShellCommandTask(celery.Task):
+    ignore_result = True
+
     def run(self, job_id):
         try:
             backend = celery.current_app.factory.create_backend()
