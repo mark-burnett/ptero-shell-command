@@ -20,6 +20,7 @@ _POST_JOB_SCHEMA = _load_schema('post_job')
 _POST_JOB_KEYS_RENAME = {
     'commandLine': 'command_line',
     'workingDirectory': 'working_directory',
+    'retrySettings': 'retry_settings',
 }
 
 

@@ -58,6 +58,28 @@
         "workingDirectory": {
             "type": "string",
             "minLength": 1
+        },
+        "retrySettings": {
+            "type": "object",
+            "properties": {
+                "exitCode": {
+                    "type": "integer"
+                },
+                "initialInterval": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "maxInterval": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "attempts": {
+                    "type": "integer",
+                    "minimum": 1
+                }
+            },
+            "additionalProperties": false,
+            "required": ["exitCode", "initialInterval", "maxInterval", "attempts"]
         }
     },
     "required": ["commandLine", "user", "workingDirectory"],
