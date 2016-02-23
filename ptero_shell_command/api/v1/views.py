@@ -31,6 +31,7 @@ class JobView(Resource):
         return _submit_job(pk)
 
     @logged_response(logger=LOG)
+    @handles_no_such_entity_error
     def patch(self, pk):
         LOG.info("Handling PATCH request to %s from %s for job (%s)",
                 request.url, request.access_route[0], pk,
