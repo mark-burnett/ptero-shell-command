@@ -1,4 +1,7 @@
 from .base import BaseAPITest
+from ptero_common import statuses
+from ptero_common.view_wrapper import NO_SUCH_ENTITY_STATUS_CODE
+import uuid
 
 
 class TestBadRequests(BaseAPITest):
@@ -17,6 +20,11 @@ class TestBadRequests(BaseAPITest):
 
     def _expect_400(self, data):
         self._expect(data, 400)
+
+    def _fake_job_url(self):
+        fake_job_id = str(uuid.uuid4())
+        url = '%s/%s' % (self.jobs_url, fake_job_id)
+        return url
 
     def test_empty_body(self):
         self._expect_400({})
@@ -73,3 +81,12 @@ class TestBadRequests(BaseAPITest):
             'foo': None
         }
         self._expect_400(self.valid_request_data)
+
+    def test_get_non_existent_job(self):
+        response = self.get(self._fake_job_url())
+        self.assertEqual(response.status_code, NO_SUCH_ENTITY_STATUS_CODE)
+
+    def test_patch_non_existent_job(self):
+        response = self.patch(self._fake_job_url(),
+                {"status": statuses.canceled})
+        self.assertEqual(response.status_code, NO_SUCH_ENTITY_STATUS_CODE)

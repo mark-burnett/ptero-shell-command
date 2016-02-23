@@ -3,7 +3,8 @@ from . import models
 from .models.job import PreExecFailed
 from ptero_common import nicer_logging, statuses
 from ptero_common.server_info import get_server_info
-from ptero_shell_command.exceptions import JobNotFoundError, RetryJobError
+from ptero_common.exceptions import NoSuchEntityError
+from ptero_shell_command.exceptions import RetryJobError
 import os
 import subprocess
 import time
@@ -175,7 +176,7 @@ class Backend(object):
         if job is not None:
             return job
         else:
-            raise JobNotFoundError("No job with id (%s) was found" % job_id)
+            raise NoSuchEntityError("No job with id (%s) was found" % job_id)
 
     def get_job(self, job_id):
         job = self._get_job(job_id)
