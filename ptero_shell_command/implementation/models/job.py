@@ -190,15 +190,17 @@ class JobStatusHistory(Base):
     __tablename__ = 'job_status_history'
 
     id = Column(Integer, primary_key=True)
-    job_id = Column(UUID(), ForeignKey(Job.id), nullable=False, index=True)
+    job_id = Column(UUID(), ForeignKey(Job.id, ondelete='CASCADE'),
+            nullable=False, index=True)
     timestamp = Column(DateTime(timezone=True), default=func.now(),
                        nullable=False)
 
     status = Column(Text, index=True, nullable=False)
     message = Column(Text)
 
-    job = relationship(Job,
-                       backref=backref('status_history', order_by=timestamp))
+    job = relationship(Job, backref=backref('status_history',
+        order_by=timestamp,
+        passive_deletes='all'))
 
     @property
     def as_dict(self):

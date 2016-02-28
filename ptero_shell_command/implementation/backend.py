@@ -60,6 +60,13 @@ class Backend(object):
 
         return job.as_dict
 
+    def delete_job(self, job_id):
+        LOG.info("Deleting job (%s)", job_id, extra={'jobId': job_id})
+        job = self._get_job(job_id)
+
+        self.session.delete(job)
+        self.session.commit()
+
     def run_job(self, job_id, attempt_number):
         job = self._get_job(job_id)
 
@@ -139,9 +146,9 @@ class Backend(object):
         while process.poll() is None:
             LOG.debug('Polling to find out if job (%s) is canceled',
                     job_id, extra={'jobId': job_id})
-            if self.job_is_canceled_and_rollback(job_id):
-                LOG.info("Found job (%s) was canceled while running: "
-                        "terminating child process",
+            if self.job_is_canceled_or_deleted_and_rollback(job_id):
+                LOG.info("Found job (%s) was canceled or deleted while "
+                        "running: terminating child process",
                         job_id, extra={'jobId': job_id})
                 self._kill_process(process, job_id)
             else:
@@ -195,15 +202,22 @@ class Backend(object):
                     message="Status set by PATCH request")
             return job.as_dict
 
-    def job_is_canceled_and_rollback(self, job_id):
-        result = self.job_is_canceled(job_id)
+    def job_is_canceled_or_deleted_and_rollback(self, job_id):
+        result = self.job_is_canceled_or_deleted(job_id)
         self.session.rollback()
         return result
+
+    def job_is_canceled_or_deleted(self, job_id):
+        return self.job_is_canceled(job_id) or self.job_is_deleted(job_id)
 
     def job_is_canceled(self, job_id):
         return self.session.query(models.JobStatusHistory).filter(
                 models.JobStatusHistory.job_id == job_id).filter(
                 models.JobStatusHistory.status == statuses.canceled).count() > 0
+
+    def job_is_deleted(self, job_id):
+        return self.session.query(models.Job).filter(
+                    models.Job.id == job_id).count() == 0
 
     def get_retry_delay(self, job_id, attempt_number):
         job = self._get_job(job_id)
