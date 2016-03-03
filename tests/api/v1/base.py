@@ -106,6 +106,9 @@ class BaseAPITest(unittest.TestCase):
             requests.put(url, headers={'content-type': 'application/json'},
                          data=json.dumps(data)))
 
+    def delete(self, url):
+        return _deserialize_response(requests.delete(url))
+
 
 def _deserialize_response(response):
     response.DATA = response.json()

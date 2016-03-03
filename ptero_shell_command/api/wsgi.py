@@ -5,7 +5,11 @@ import os
 app = application.create_app()
 configure_web_logging('SHELL_COMMAND')
 
+
 if __name__ == '__main__':
+    import signal
+    signal.signal(signal.SIGTERM, signal.getsignal(signal.SIGINT))
+
     app.run(host='0.0.0.0',
             port=os.environ['PTERO_SHELL_COMMAND_PORT'],
             debug=False, use_reloader=False)
