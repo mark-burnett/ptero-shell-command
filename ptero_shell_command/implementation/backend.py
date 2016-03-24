@@ -50,14 +50,15 @@ class Backend(object):
 
         LOG.debug("Commiting job (%s) to DB", job.id,
                 extra={'jobId': job.id})
+        self._set_job_status(job, statuses.submitted)
         self.session.commit()
+
         LOG.debug("Job (%s) committed to DB", job.id,
                 extra={'jobId': job.id})
 
         LOG.info("Submitting Celery ShellCommandTask for job (%s)",
                 job.id, extra={'jobId': job.id})
         self.shell_command.delay(job.id)
-        self._set_job_status(job, statuses.submitted)
 
         return job.as_dict
 
