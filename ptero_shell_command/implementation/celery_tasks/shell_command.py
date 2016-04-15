@@ -33,3 +33,5 @@ class ShellCommandTask(celery.Task):
                     self.retry(throw=False, countdown=delay)
         except:
             LOG.exception("Exception while trying to run job (%s)", job_id)
+        finally:
+            backend.cleanup()
