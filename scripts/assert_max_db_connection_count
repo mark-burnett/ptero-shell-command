@@ -1,0 +1,83 @@
+#!/usr/bin/env bash
+
+set -o errexit
+#set -x
+
+err() {
+  echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')]: $@" >&2
+}
+
+parse_db_string() {
+    local db_string="$1"  # e.g., postgres://postgres@127.0.0.1/ptero_shell_command
+    perl -e '$ARGV[0] =~ m/^postgres:\/\/(.+)@(.+)\/(.+)$/; exit 1 unless defined $1; print "$1 $2 $3\n"' $db_string
+}
+
+psql_command() {
+    local host="$1"
+    local username="$2"
+    local dbname="$3"
+    local sql_command="$4"
+
+    psql \
+        --quiet \
+        --tuples-only \
+        --no-align \
+        --host "$host" \
+        --username "$username" \
+        --dbname "$dbname" \
+        --command "$sql_command" \
+        ;
+
+    if [[ "$?" -ne 0 ]]; then
+        err "Unable to execute sql command"
+        err "Host: $host"
+        err "Username: $username"
+        err "Dbname: $dbname"
+        err "Command: $sql_command"
+        exit 1
+    fi
+}
+
+count_database_connections() {
+    local db_string="$1"
+
+    local db_params=($(parse_db_string $db_string))
+    local db_user=${db_params[0]}
+    local db_host=${db_params[1]}
+    local db_name=${db_params[2]}
+
+    if [[ "${#db_user}" -eq "0" ]]; then
+        err "Unable to parse db params from $db_string"
+        exit 1
+    fi
+
+    psql_command $db_host $db_user $db_name \
+        "select numbackends from pg_stat_database where datname='$db_name'"
+
+    if [[ "$?" -ne 0 ]]; then
+        err "Unable to execute psql command $db_params"
+        exit 1
+    fi
+}
+
+main() {
+    local max_connections="$1"
+    local db_string="$2"
+    local connection_count=$(count_database_connections $db_string)
+    if [[ "${connection_count}" -eq "" ]]; then
+        err "Unable to check number of database connections"
+        exit 1
+    fi
+
+    if [[ "$connection_count" -gt "$max_connections" ]]; then
+        echo "Assertion failed: Connection count ($connection_count) " \
+            "is greater than max connections ($max_connections)"
+        exit 1
+    else
+        echo "Assertion passes: Connection count ($connection_count) " \
+            "is less than or equal to max connections ($max_connections)"
+        exit 0
+    fi
+}
+
+main "$@"
